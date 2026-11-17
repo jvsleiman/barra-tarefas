@@ -4,20 +4,20 @@
               xmlns:w="clr-namespace:OpenTaskbar.Widgets"
               xmlns:local="clr-namespace:OpenTaskbar.Services">
     <Border Style="{StaticResource WidgetCardBorder}" Padding="7,0">
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+        <StackPanel x:Name="Items" Orientation="Horizontal" VerticalAlignment="Center">
             <!-- Split pills: the icon toggles the radio, the chevron opens its settings page. -->
             <Border x:Name="WifiPill" CornerRadius="16" BorderThickness="1.5" Background="{DynamicResource SurfaceSelected}" BorderBrush="{DynamicResource StrokeSubtle}" Margin="2,0">
                 <StackPanel Orientation="Horizontal">
                     <ToggleButton x:Name="WifiToggle" Style="{StaticResource WidgetIconButton}" Width="32" Height="29" Click="WifiToggle_Click">
                         <ContentControl Style="{StaticResource WidgetIcon}" Content="{StaticResource IconWifi}" />
                     </ToggleButton>
-                    <Rectangle Width="1" Height="14" Fill="{DynamicResource StrokeSubtle}" />
+                    <Rectangle Tag="PillDivider" Width="1" Height="14" Fill="{DynamicResource StrokeSubtle}" />
                     <Button x:Name="WifiSettings" Style="{StaticResource WidgetIconButton}" Width="26" Height="29" Click="WifiSettings_Click">
                         <ContentControl Style="{StaticResource WidgetIcon}" Content="{StaticResource IconChevronRight}" Width="12" Height="12" />
                     </Button>
                 </StackPanel>
             </Border>
-            <Button Style="{StaticResource WidgetPill}" Margin="2,0" Click="Display_Click"
+            <Button x:Name="DisplayButton" Style="{StaticResource WidgetPill}" Margin="2,0" Click="Display_Click"
                     ToolTip="{local:Loc Display}" AutomationProperties.Name="{local:Loc Display}">
                 <ContentControl Style="{StaticResource WidgetIcon}" Content="{StaticResource IconCast}" />
             </Button>
@@ -26,22 +26,22 @@
                     <ToggleButton x:Name="BluetoothToggle" Style="{StaticResource WidgetIconButton}" Width="32" Height="29" Click="BluetoothToggle_Click">
                         <ContentControl Style="{StaticResource WidgetIcon}" Content="{StaticResource IconBluetooth}" />
                     </ToggleButton>
-                    <Rectangle Width="1" Height="14" Fill="{DynamicResource StrokeSubtle}" />
+                    <Rectangle Tag="PillDivider" Width="1" Height="14" Fill="{DynamicResource StrokeSubtle}" />
                     <Button x:Name="BluetoothSettings" Style="{StaticResource WidgetIconButton}" Width="26" Height="29" Click="BluetoothSettings_Click">
                         <ContentControl Style="{StaticResource WidgetIcon}" Content="{StaticResource IconChevronRight}" Width="12" Height="12" />
                     </Button>
                 </StackPanel>
             </Border>
-            <Button Style="{StaticResource WidgetPill}" Margin="2,0" Click="Hotspot_Click"
+            <Button x:Name="HotspotButton" Style="{StaticResource WidgetPill}" Margin="2,0" Click="Hotspot_Click"
                     ToolTip="{local:Loc Hotspot}" AutomationProperties.Name="{local:Loc Hotspot}">
                 <ContentControl Style="{StaticResource WidgetIcon}" Content="{StaticResource IconHotspot}" />
             </Button>
-            <Rectangle Width="1" Height="18" Fill="{DynamicResource StrokeSubtle}" Margin="5,0" />
-            <Button Style="{StaticResource WidgetIconButton}" Width="32" Height="32" Margin="1,0" Click="QuickSettings_Click"
+            <Rectangle x:Name="ItemsDivider" Width="1" Height="18" Fill="{DynamicResource StrokeSubtle}" Margin="5,0" />
+            <Button x:Name="PanelButton" Style="{StaticResource WidgetIconButton}" Width="32" Height="32" Margin="1,0" Click="QuickSettings_Click"
                     ToolTip="{local:Loc QuickSettingsPanel}" AutomationProperties.Name="{local:Loc QuickSettingsPanel}">
                 <ContentControl Style="{StaticResource WidgetIcon}" Content="{StaticResource IconSettings}" />
             </Button>
-            <Button Style="{StaticResource WidgetIconButton}" Width="32" Height="32" Margin="1,0" Click="Notifications_Click"
+            <Button x:Name="NotificationsButton" Style="{StaticResource WidgetIconButton}" Width="32" Height="32" Margin="1,0" Click="Notifications_Click"
                     ToolTip="{local:Loc NotificationCenter}" AutomationProperties.Name="{local:Loc NotificationCenter}">
                 <ContentControl Style="{StaticResource WidgetIcon}" Content="{StaticResource IconBell}" />
             </Button>

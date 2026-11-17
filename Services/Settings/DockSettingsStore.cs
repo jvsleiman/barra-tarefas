@@ -155,7 +155,19 @@ public sealed class DockSettingsStore
         && settings.Profiles?.Any(profile => string.IsNullOrWhiteSpace(profile.Name) || profile.HiddenApps is null) != true
         && settings.Profiles?.Select(profile => profile.Name).Distinct(StringComparer.CurrentCultureIgnoreCase).Count() == settings.Profiles?.Count
         && settings.AppGroups?.Any(group => string.IsNullOrWhiteSpace(group.Name) || group.Apps is null
-            || group.Apps.Any(string.IsNullOrWhiteSpace)) != true;
+            || group.Apps.Any(string.IsNullOrWhiteSpace) || !IsColorOrEmpty(group.Color)) != true
+        && settings.QuickSettingsItems?.Any(item => !DockSettings.AllQuickSettingsItems.Contains(item)) != true
+        && settings.QuickSettingsItems?.Distinct(StringComparer.Ordinal).Count() == settings.QuickSettingsItems?.Count
+        && Enum.IsDefined(settings.IndicatorStyle) && Enum.IsDefined(settings.StartIcon)
+        && settings.StartIconPath is { Length: <= 400 }
+        && double.IsFinite(settings.StartIconScale) && settings.StartIconScale is >= 0.6 and <= 1.6
+        && double.IsFinite(settings.TileOpacity) && settings.TileOpacity is >= 0 and <= 0.5
+        && double.IsFinite(settings.CornerRadius) && settings.CornerRadius is >= 0 and <= 24
+        && new[] { settings.AccentColor, settings.BarColor, settings.TileColor, settings.WeekdayColor, settings.RunningDotColor }.All(IsColorOrEmpty);
+
+    /// <summary>Empty (theme default) or "#RRGGBB".</summary>
+    public static bool IsColorOrEmpty(string? color) => string.IsNullOrEmpty(color)
+        || (color.Length == 7 && color[0] == '#' && color.Skip(1).All(Uri.IsHexDigit));
 
     public static bool Validate(DockSettings settings) => IsValid(settings);
 

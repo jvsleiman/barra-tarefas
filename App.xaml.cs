@@ -1,4 +1,4 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,8 +35,7 @@ public partial class App : Application
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "OpenTaskbar", "preview-settings.json")));
         UiText.Current.SetLanguage(Preferences.Current.Language);
-        ThemeManager.Apply(Preferences.Current.Theme, Preferences.Current.SurfaceOpacity);
-        ThemeManager.SetIconTiles(Preferences.Current.IconTiles);
+        ThemeManager.ApplySettings(Preferences.Current);
         _instanceMutex = new Mutex(initiallyOwned: true,
             name: IsPreview ? "Local\\OpenTaskbar.Preview" : "Local\\OpenTaskbar.Singleton", out var createdNew);
         if (!createdNew)

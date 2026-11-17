@@ -64,6 +64,7 @@ public partial class MainWindow
         ApplyStartPlacement();
         ApplyEdge();
         ApplyDividerStyle();
+        ApplyPersonalization();
         ApplySecondaryDocks();
         RebuildAppGroups();
         ApplyProfileFilter();
@@ -426,11 +427,16 @@ public partial class MainWindow
 
     private IReadOnlyList<TrackedWindow> FilterWindows(IReadOnlyList<TrackedWindow> windows)
     {
-        if (!_preferences.Current.CurrentDesktopOnly) return windows;
-        if (ReferenceEquals(windows, _filteredSource) && _filteredDesktop == _currentDesktop) return _filteredWindows;
+        var desktopOnly = _preferences.Current.CurrentDesktopOnly;
+        var monitorOnly = _preferences.Current.ThisMonitorAppsOnly && _source is not null;
+        if (!desktopOnly && !monitorOnly) return windows;
+        if (!monitorOnly && ReferenceEquals(windows, _filteredSource) && _filteredDesktop == _currentDesktop) return _filteredWindows;
         _filteredSource = windows;
         _filteredDesktop = _currentDesktop;
-        _filteredWindows = windows.Where(window => VirtualDesktops.IsOnCurrentDesktop(window.Handle)).ToList();
+        // Windows on other displays already appear on that display's own dock.
+        var dockMonitor = monitorOnly ? DockMonitorFromWindow(_source!.Handle) : 0;
+        _filteredWindows = windows.Where(window => (!desktopOnly || VirtualDesktops.IsOnCurrentDesktop(window.Handle))
+            && (!monitorOnly || DockMonitorFromWindow(window.Handle) == dockMonitor)).ToList();
         return _filteredWindows;
     }
 

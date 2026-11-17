@@ -56,7 +56,7 @@
                                 CornerRadius="{StaticResource DockTileRadius}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                             <Grid>
                                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                <Rectangle x:Name="ActiveIndicator" Height="4" Width="4" RadiusX="2" RadiusY="2"
+                                <Rectangle x:Name="ActiveIndicator" Height="{DynamicResource RunningIndicatorHeight}" Width="{DynamicResource RunningIndicatorWidth}" RadiusX="2" RadiusY="2"
                                            Fill="{DynamicResource RunningDotBrush}" VerticalAlignment="Bottom" Margin="0,0,0,2"
                                            HorizontalAlignment="Center" Visibility="Collapsed" IsHitTestVisible="False" />
                             </Grid>
@@ -81,7 +81,7 @@
                         <DataTrigger Binding="{Binding IsForeground}" Value="True">
                             <Setter TargetName="Surface" Property="Background" Value="{DynamicResource SurfaceSelectedStrong}" />
                             <Setter TargetName="ActiveIndicator" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="ActiveIndicator" Property="Width" Value="10" />
+                            <Setter TargetName="ActiveIndicator" Property="Width" Value="{DynamicResource RunningIndicatorActiveWidth}" />
                         </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>

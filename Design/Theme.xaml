@@ -48,6 +48,12 @@
     <CornerRadius x:Key="ControlRadius">12</CornerRadius>
     <CornerRadius x:Key="DockTileRadius">10</CornerRadius>
     <Thickness x:Key="DockTileInset">3</Thickness>
+    <!-- Running indicator (dot by default; ThemeManager switches to a bar). -->
+    <Visibility x:Key="AppTitleVisibility">Collapsed</Visibility>
+    <sys:Double x:Key="DockAppButtonWidth">50</sys:Double>
+    <sys:Double x:Key="RunningIndicatorWidth">4</sys:Double>
+    <sys:Double x:Key="RunningIndicatorHeight">4</sys:Double>
+    <sys:Double x:Key="RunningIndicatorActiveWidth">10</sys:Double>
     <CornerRadius x:Key="DockWidgetRadius">10</CornerRadius>
     <CornerRadius x:Key="PopupRadius">10</CornerRadius>
     <Style TargetType="ToolTip">

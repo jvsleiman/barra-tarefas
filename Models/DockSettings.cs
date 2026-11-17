@@ -17,6 +17,8 @@ public enum HotkeyChoice { Disabled, AltSpace, CtrlSpace, CtrlAltSpace, CtrlAltD
 public enum StartButtonAction { WindowsStart, Launcher }
 public enum StartButtonPlacement { Start, End, Hidden }
 public enum ClockDateStyle { DayAndShortDate, ShortDateOnly, NumericDate, Hidden }
+public enum StartIconStyle { GreyLogo, WindowsLogo, CustomImage, Text }
+public enum RunningIndicatorStyle { Dot, Bar }
 
 /// <summary>The individual meters of the System meters widget; a cleared flag hides that meter.</summary>
 [Flags]
@@ -36,7 +38,7 @@ public enum SystemMeters
 public sealed record DockProfile(string Name, IReadOnlyList<string> HiddenApps);
 
 /// <summary>Pinned apps shown together in one dock tile (2x2 preview) that opens a flyout.</summary>
-public sealed record DockAppGroup(string Name, IReadOnlyList<string> Apps);
+public sealed record DockAppGroup(string Name, IReadOnlyList<string> Apps, string? Color = null);
 
 // Missing JSON properties fall back to these constructor defaults, so older settings files stay valid.
 public sealed record DockSettings(
@@ -92,8 +94,30 @@ public sealed record DockSettings(
     bool ClockShowWeather = true,
     IReadOnlyList<DockAppGroup>? AppGroups = null,
     // Files written before the tile look have no StyleVersion; the store migrates them once.
-    int StyleVersion = DockSettings.CurrentStyleVersion)
+    int StyleVersion = DockSettings.CurrentStyleVersion,
+    // ---- 0.4.0 personalization; every default reproduces the 0.3.x look, so old files need no migration ----
+    IReadOnlyList<string>? QuickSettingsItems = null,
+    bool QuickSettingsCompact = true,
+    bool ShowAppTitles = false,
+    RunningIndicatorStyle IndicatorStyle = RunningIndicatorStyle.Dot,
+    bool ThisMonitorAppsOnly = false,
+    StartIconStyle StartIcon = StartIconStyle.GreyLogo,
+    string StartIconPath = "",
+    double StartIconScale = 1.0,
+    // Colors are "#RRGGBB"; empty = the theme's own color.
+    string AccentColor = "",
+    string BarColor = "",
+    string TileColor = "",
+    double TileOpacity = 0.055,
+    double CornerRadius = 15,
+    string WeekdayColor = "",
+    string RunningDotColor = "",
+    IReadOnlyList<string>? DeviceFilter = null)
 {
+    /// <summary>Quick settings items, in display order (Wi-Fi, Bluetooth, Display/cast, Hotspot, Windows panel, notifications).</summary>
+    public static readonly IReadOnlyList<string> AllQuickSettingsItems = ["Wifi", "Bluetooth", "Display", "Hotspot", "Panel", "Notifications"];
+    public static readonly IReadOnlyList<string> DefaultQuickSettingsItems = ["Wifi", "Bluetooth", "Notifications"];
+    public IReadOnlyList<string> EffectiveQuickSettingsItems => QuickSettingsItems ?? DefaultQuickSettingsItems;
     public const int CurrentStyleVersion = 1;
     public static readonly IReadOnlyList<string> DefaultWidgets = ["Calendar", "Tray", "Clock"];
 }

@@ -77,7 +77,7 @@
         </Style>
 
         <DataTemplate x:Key="DockAppIconTemplate">
-            <Button Style="{StaticResource DockButton}" Tag="{Binding ExecutablePath}"
+            <Button Style="{StaticResource DockButton}" Tag="{Binding ExecutablePath}" Width="{DynamicResource DockAppButtonWidth}"
                     Click="DockApp_Click" AutomationProperties.Name="{Binding Name}"
                     ToolTip="{Binding Name}" ToolTipService.InitialShowDelay="650" ContextMenu="{StaticResource AppContextMenu}"
                     Loaded="DockAppButton_Loaded"
@@ -91,15 +91,12 @@
                     DragLeave="DockApp_DragLeave"
                     MouseEnter="DockApp_MouseEnter" MouseLeave="DockApp_MouseLeave"
                     MouseUp="DockApp_MouseUp" MouseWheel="DockApp_MouseWheel">
-                <Grid Width="{DynamicResource DockIconSize}" Height="{DynamicResource DockIconSize}"
-                      RenderTransformOrigin="0.5,0.95">
-                    <Image Source="{Binding Icon}" Width="{DynamicResource DockIconSize}" Height="{DynamicResource DockIconSize}"
-                           Stretch="Uniform" ClipToBounds="True" RenderOptions.BitmapScalingMode="HighQuality" />
-                    <Ellipse Width="9" Height="9" Fill="{DynamicResource NotificationBrush}"
-                             Stroke="{DynamicResource SurfacePopup}" StrokeThickness="1"
-                             HorizontalAlignment="Right" VerticalAlignment="Top"
-                             Visibility="{Binding HasNotification, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                </Grid>
+                <StackPanel Orientation="Horizontal">
+                    <Grid Width="{DynamicResource DockIconSize}" Height="{DynamicResource DockIconSize}"                           RenderTransformOrigin="0.5,0.95">                         <Image Source="{Binding Icon}" Width="{DynamicResource DockIconSize}" Height="{DynamicResource DockIconSize}"                                Stretch="Uniform" ClipToBounds="True" RenderOptions.BitmapScalingMode="HighQuality" />                         <Ellipse Width="9" Height="9" Fill="{DynamicResource NotificationBrush}"                                  Stroke="{DynamicResource SurfacePopup}" StrokeThickness="1"                                  HorizontalAlignment="Right" VerticalAlignment="Top"                                  Visibility="{Binding HasNotification, Converter={StaticResource BooleanToVisibilityConverter}}" />                     </Grid>
+                    <!-- Icon + title mode (Barra › Apps abertos). -->
+                    <TextBlock Text="{Binding Name}" Visibility="{DynamicResource AppTitleVisibility}" MaxWidth="140" Margin="8,0,6,0"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" FontSize="12" Foreground="{DynamicResource TextPrimary}" />
+                </StackPanel>
             </Button>
         </DataTemplate>
         <ContextMenu x:Key="StackContextMenu" x:Shared="False" Opened="DockContextMenu_Opened" Closed="DockContextMenu_Closed">
@@ -189,7 +186,7 @@
                                             <TranslateTransform Y="0" />
                                         </TransformGroup>
                                     </Grid.RenderTransform>
-                                    <Path Width="18" Height="18" Stretch="Uniform" Fill="{DynamicResource WindowsLogoBrush}"
+                                    <Path x:Name="StartLogo" Width="18" Height="18" Stretch="Uniform" Fill="{DynamicResource WindowsLogoBrush}"
                                           MaxWidth="{DynamicResource DockIconSize}" MaxHeight="{DynamicResource DockIconSize}"
                                           Data="M0,0 H10 V10 H0 Z M12,0 H22 V10 H12 Z M0,12 H10 V22 H0 Z M12,12 H22 V22 H12 Z" />
                                 </Grid>

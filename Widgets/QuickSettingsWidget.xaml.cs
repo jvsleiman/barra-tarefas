@@ -3,6 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Threading;
+using OpenTaskbar.Models;
 using OpenTaskbar.Services;
 using Windows.Devices.Radios;
 
@@ -63,21 +64,52 @@ public partial class QuickSettingsWidget : DockWidget
     private void Radio_StateChanged(Radio sender, object args) =>
         Dispatcher.BeginInvoke(DispatcherPriority.Background, Render);
 
-    private void Render()
+    protected override void OnSettingsChanged() => Render();
+
+    /// <summary>
+    /// Display order for the chosen items (unknown ids dropped, duplicates removed); the divider goes before the
+    /// first Windows-panel item (Panel/Notifications) when a radio item precedes it.
+    /// </summary>
+    public static IReadOnlyList<string> Arrange(IReadOnlyList<string> items)
     {
-        RenderRadio(_wifi, WifiPill, WifiToggle, WifiSettings, "WiFi");
-        RenderRadio(_bluetooth, BluetoothPill, BluetoothToggle, BluetoothSettings, "Bluetooth");
+        var ordered = items.Where(DockSettings.AllQuickSettingsItems.Contains).Distinct(StringComparer.Ordinal).ToList();
+        var firstPanel = ordered.FindIndex(item => item is "Panel" or "Notifications");
+        if (firstPanel > 0 && ordered.Take(firstPanel).Any(item => item is not ("Panel" or "Notifications"))) ordered.Insert(firstPanel, "Divider");
+        return ordered;
     }
 
-    private void RenderRadio(Radio? radio, Border pill, ToggleButton toggle, Button settings, string nameKey)
+    private void Render()
+    {
+        var elements = new Dictionary<string, FrameworkElement>
+        {
+            ["Wifi"] = WifiPill, ["Bluetooth"] = BluetoothPill, ["Display"] = DisplayButton, ["Hotspot"] = HotspotButton,
+            ["Panel"] = PanelButton, ["Notifications"] = NotificationsButton, ["Divider"] = ItemsDivider
+        };
+        var arranged = Arrange(Settings.EffectiveQuickSettingsItems);
+        Items.Children.Clear();
+        foreach (var id in arranged) Items.Children.Add(elements[id]);
+        HasData = arranged.Count > 0;
+
+        // Compact: icons only, without the settings chevrons and pill outlines.
+        var compact = Settings.QuickSettingsCompact;
+        foreach (var chevron in new FrameworkElement[] { WifiSettings, BluetoothSettings })
+            chevron.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        foreach (var divider in Items.Children.OfType<Border>().SelectMany(pill => ((Panel)pill.Child).Children.OfType<System.Windows.Shapes.Rectangle>()))
+            divider.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+
+        RenderRadio(_wifi, WifiPill, WifiToggle, WifiSettings, "WiFi", compact);
+        RenderRadio(_bluetooth, BluetoothPill, BluetoothToggle, BluetoothSettings, "Bluetooth", compact);
+    }
+
+    private void RenderRadio(Radio? radio, Border pill, ToggleButton toggle, Button settings, string nameKey, bool compact)
     {
         var name = UiText.Get(nameKey);
         // With access but no matching radio the device lacks that hardware; hide it rather than show a dead control.
         pill.Visibility = _radioAccess && radio is null && IsActive ? Visibility.Collapsed : Visibility.Visible;
         var on = radio?.State == RadioState.On;
         toggle.IsChecked = on;
-        pill.SetResourceReference(Border.BackgroundProperty, on ? "SurfaceSelectedStrong" : "SurfaceSelected");
-        pill.SetResourceReference(Border.BorderBrushProperty, on ? "WidgetOnStroke" : "StrokeSubtle");
+        pill.SetResourceReference(Border.BackgroundProperty, on ? "SurfaceSelectedStrong" : compact ? "Transparent" : "SurfaceSelected");
+        pill.SetResourceReference(Border.BorderBrushProperty, on && !compact ? "WidgetOnStroke" : compact ? "Transparent" : "StrokeSubtle");
         toggle.SetResourceReference(ForegroundProperty, on ? "WidgetAccent" : "TextPrimary");
         var toggleLabel = radio is null ? UiText.Format("RadioSettings", name) : UiText.Format("RadioToggle", name);
         toggle.ToolTip = toggleLabel;

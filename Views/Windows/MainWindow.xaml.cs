@@ -1596,8 +1596,10 @@ public partial class MainWindow : Window
         Application.Current.Resources["DockCellHeight"] = profile.Cell;
         Application.Current.Resources["DockIconSize"] = profile.Icon;
         DockFrame.Padding = new Thickness(10, profile.VerticalPadding, 10, profile.VerticalPadding);
-        DockFrame.CornerRadius = new CornerRadius(profile.Radius);
-        DockInnerBevel.CornerRadius = new CornerRadius(Math.Max(1, profile.Radius - 1));
+        // Corner radius is a personal setting (Aparência); the size profile no longer decides it.
+        DockFrame.CornerRadius = new CornerRadius(_preferences.Current.CornerRadius);
+        DockInnerBevel.CornerRadius = new CornerRadius(Math.Max(1, _preferences.Current.CornerRadius - 1));
+        Application.Current.Resources["DockAppButtonWidth"] = _preferences.Current.ShowAppTitles ? double.NaN : profile.Cell;
         // The sheen sits on the inner top edge of the glass frame, inset past the rounded corners.
         var sheenHorizontal = Math.Max(4, profile.Radius - 8);
         DockSheen.Margin = new Thickness(sheenHorizontal, -profile.VerticalPadding + 1, sheenHorizontal, 0);
