@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1 - 2026-11-17
+
+- **Botão Iniciar:** o segundo clique agora fecha o menu Iniciar (antes fechava e abria de novo na hora).
+- **Painéis da barra (grupo, Downloads, bandeja, relógio, calendário):** o segundo clique fecha o painel. Antes, o clique chegava durante a animação de fechar e reabria o painel; segurar o clique um pouco mais também reabria. O painel também não fecha mais sozinho logo depois de abrir.
+- **Card do calendário:** agora abre o calendário do mês (igual ao do relógio), que abre e fecha no mesmo bloco; as notificações do Windows continuam a um clique dentro dele.
+- **Encerrar tarefa:** encerra de verdade apps em segundo plano, inclusive todos os processos do app. Apps que rodam como administrador, serviços do Windows e processos essenciais (como o Explorer) mostram uma mensagem clara em vez de falhar calado; se algo continuar aberto, a barra avisa.
+- **Fechar:** fecha também apps que ficam só na bandeja (sem janela visível).
+- **Prévia das janelas:** ao fechar uma das janelas, a prévia se atualiza em vez de mostrar a janela que já fechou.
+- **Configurações mais simples:** a página Geral agora tem seções (Barra, Inicialização e atualizações, Ocultar automaticamente), uma linha explicando cada opção e as opções pouco usadas em "Mostrar opções avançadas". Textos que ainda apareciam em turco ou inglês foram traduzidos.
 ## 0.3.0 - 2026-11-17
 
 Primeira versão deste fork (barra-tarefas), baseado no OpenTaskbar 0.2.6 (MIT, OpenTaskbar contributors).

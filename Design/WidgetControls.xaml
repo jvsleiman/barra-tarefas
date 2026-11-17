@@ -160,8 +160,8 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                        <TextBlock Text="PAZARTESİ" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
-                        <TextBlock Text="16 Kas" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" Margin="0,-1,0,0" />
+                        <TextBlock Text="{local:Loc PreviewWeekday}" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource WeekdayAccent}" />
+                        <TextBlock Text="{local:Loc PreviewDate}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}" Margin="0,-1,0,0" />
                     </StackPanel>
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
                         <TextBlock Text="{Binding Value}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}" HorizontalAlignment="Right" />

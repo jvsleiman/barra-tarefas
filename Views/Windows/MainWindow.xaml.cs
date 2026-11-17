@@ -416,10 +416,17 @@ public partial class MainWindow : Window
 
         if (_thumbnailPreview.IsVisible)
         {
+            // A closed window must not leave a stale thumbnail: rebuild the preview from the app's remaining windows,
+            // or hide it when none are left (previously it only hid once every shown window was gone).
             var activeHandles = _thumbnailPreview.ActiveHandles;
-            if (activeHandles.Count > 0 && !activeHandles.Any(h => windows.Any(w => w.Handle == h)))
+            if (activeHandles.Count > 0 && activeHandles.Any(h => !windows.Any(w => w.Handle == h)))
             {
-                _thumbnailPreview.Hide();
+                var remaining = _previewExecutable is null ? [] : windows.Where(window =>
+                    string.Equals(window.ExecutablePath, _previewExecutable, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (remaining.Count > 0 && _previewAnchor is { IsVisible: true } anchor)
+                    _thumbnailPreview.ShowForWindows(remaining, anchor, (anchor.DataContext as DockApp)?.Icon);
+                else
+                    _thumbnailPreview.Hide();
             }
         }
     }
@@ -877,8 +884,13 @@ public partial class MainWindow : Window
         }
 
         var appIcon = ((Button)sender).DataContext is DockApp app ? app.Icon : null;
-        _thumbnailPreview.ShowForWindows(matchingWindows, (FrameworkElement)sender, appIcon);
+        _previewAnchor = (FrameworkElement)sender;
+        _previewExecutable = executablePath;
+        _thumbnailPreview.ShowForWindows(matchingWindows, _previewAnchor, appIcon);
     }
+
+    private FrameworkElement? _previewAnchor;
+    private string? _previewExecutable;
 
     private void DockApp_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
     {

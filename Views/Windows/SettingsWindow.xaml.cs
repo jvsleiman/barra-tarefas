@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
@@ -273,6 +273,14 @@ public partial class SettingsWindow : Window
         | (StatsCpuTemperatureToggle.IsChecked == true ? SystemMeters.CpuTemperature : 0)
         | (StatsGpuToggle.IsChecked == true ? SystemMeters.Gpu : 0)
         | (StatsGpuTemperatureToggle.IsChecked == true ? SystemMeters.GpuTemperature : 0);
+
+    private void AdvancedGeneral_Click(object sender, RoutedEventArgs e)
+    {
+        var show = AdvancedGeneral.Visibility != Visibility.Visible;
+        AdvancedGeneral.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
+        AdvancedGeneralButton.Content = UiText.Get(show ? "HideAdvanced" : "ShowAdvanced");
+        if (show) AdvancedGeneral.BringIntoView();
+    }
 
     private void RefreshWidgetPreviews() => DockWidgetService.Refresh(
         _widgetOptions.Select(option => option.Preview), _preferences.Current.Language);
