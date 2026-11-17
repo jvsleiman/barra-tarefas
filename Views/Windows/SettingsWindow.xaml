@@ -224,6 +224,8 @@
                                         AutomationProperties.Name="{local:Loc SurfaceOpacity}" AutomationProperties.HelpText="{local:Loc SurfaceOpacityHelp}"
                                         ValueChanged="OpacitySlider_ValueChanged" />
                             </StackPanel>
+                            <!-- Built in code: colors with live preview and the Start button (SettingsWindow.Personalization.cs). -->
+                            <StackPanel x:Name="AppearanceExtras" />
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
@@ -400,7 +402,12 @@
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
-            <TabItem x:Name="SuggestionsTab" Header="{local:Loc Suggestions}" Tag="&#xE8BD;">
+            <TabItem x:Name="BarTab" Header="{local:Loc BarPage}" Tag="&#xE8A1;">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
+                        <StackPanel x:Name="BarPage" Margin="{StaticResource SettingsPageInset}" MaxWidth="{StaticResource SettingsReadingWidth}" />
+                    </ScrollViewer>
+                </TabItem>
+                <TabItem x:Name="SuggestionsTab" Header="{local:Loc Suggestions}" Tag="&#xE8BD;">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
                         <StackPanel x:Name="SuggestionsPage" Margin="{StaticResource SettingsPageInset}" MaxWidth="{StaticResource SettingsReadingWidth}" />
                     </ScrollViewer>

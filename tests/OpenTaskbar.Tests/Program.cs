@@ -441,6 +441,9 @@ void PersonalizationChecks()
           && OpenTaskbar.Widgets.NetworkSpeedWidget.FormatRate(0, pt) == "0 B/s", "Network speed must format like Task Manager.");
     Check(OpenTaskbar.Widgets.QuickNotesWidget.PreviewOf("\r\n  \r\n  Comprar café  \r\nligar", "Notas") == "Comprar café"
           && OpenTaskbar.Widgets.QuickNotesWidget.PreviewOf("", "Notas") == "Notas", "Notes preview shows the first written line.");
+    Check(OpenTaskbar.SettingsWindow.Move(["Wifi", "Bluetooth", "Panel"], "Panel", -1).SequenceEqual(["Wifi", "Panel", "Bluetooth"])
+          && OpenTaskbar.SettingsWindow.Move(["Wifi", "Bluetooth"], "Wifi", -1).SequenceEqual(["Wifi", "Bluetooth"])
+          && OpenTaskbar.SettingsWindow.Move(["Wifi"], "Missing", 1).SequenceEqual(["Wifi"]), "Quick settings reorder one step and stop at the ends.");
 }
 
 void AiUsageChecks()

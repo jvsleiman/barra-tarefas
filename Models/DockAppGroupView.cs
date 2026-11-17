@@ -9,14 +9,19 @@ namespace OpenTaskbar.Models;
 /// </summary>
 public sealed class DockAppGroupView : INotifyPropertyChanged, IDisposable
 {
-    public DockAppGroupView(string name, IReadOnlyList<DockApp> apps)
+    public DockAppGroupView(string name, IReadOnlyList<DockApp> apps, string? color = null)
     {
         Name = name;
+        // A folder color tints its tile; without one it uses the normal tile fill.
+        TileBackground = Services.ThemeManager.ParseColor(color) is { } tint
+            ? new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromArgb(0x48, tint.R, tint.G, tint.B))
+            : System.Windows.Application.Current?.TryFindResource("DockTile") as System.Windows.Media.Brush;
         Apps = apps;
         foreach (var app in Apps) app.PropertyChanged += App_PropertyChanged;
     }
 
     public string Name { get; }
+    public System.Windows.Media.Brush? TileBackground { get; }
     public IReadOnlyList<DockApp> Apps { get; }
     public IReadOnlyList<BitmapSource?> PreviewIcons => Apps.Take(4).Select(app => app.Icon).ToArray();
     public bool IsRunning => Apps.Any(app => app.IsRunning);

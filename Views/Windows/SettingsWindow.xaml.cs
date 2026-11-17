@@ -35,6 +35,7 @@ public partial class SettingsWindow : Window
 
     public SettingsWindow(ApplicationPreferences preferences)
     {
+        Loaded += (_, _) => RenderPersonalization();
         _preferences = preferences;
         _applied = preferences.Current;
         InitializeComponent();
@@ -295,6 +296,7 @@ public partial class SettingsWindow : Window
         {
             UpdateWidgetPreviewRefresh();
             if (SuggestionsTab.IsSelected) RenderSuggestions();
+            if (BarTab.IsSelected) RenderBarPage();
             if (_preferences.Current.AnimationsEnabled && SettingsTabs.Template?.FindName("PART_SelectedContentHost", SettingsTabs) is ContentPresenter host)
             {
                 var fade = new System.Windows.Media.Animation.DoubleAnimation(0.4, 1.0, TimeSpan.FromMilliseconds(150))
@@ -712,6 +714,8 @@ public partial class SettingsWindow : Window
 
     private void PreferenceEdited(object sender, RoutedEventArgs e)
     {
+        // Personalization controls save themselves (SettingsWindow.Personalization.cs).
+        if (e.OriginalSource is FrameworkElement { Tag: PersonalTag }) return;
         if (_initializing) return;
         var selectedSize = LargeSize.IsChecked == true ? DockSize.Large : MediumSize.IsChecked == true ? DockSize.Medium : DockSize.Compact;
         (Application.Current.MainWindow as MainWindow)?.SetSizePreview(selectedSize, Math.Round(DockScaleSlider.Value) / 100);

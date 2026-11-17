@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.0 - 2026-11-17
+
+Feita a partir das suas sugestões.
+
+- **Cores e personalização** (Configurações › Aparência): cor de destaque, fundo da barra, cor e opacidade dos blocos, arredondamento da barra, cor do dia da semana e do ponto de app aberto, com prévia ao vivo e "Restaurar cores padrão".
+- **Botão Iniciar:** logo cinza, logo do Windows, imagem sua (PNG/ICO/JPG) ou o texto "Iniciar", em tamanho ajustável.
+- **Nova página "Barra":**
+  - **Apps abertos:** mostrar o nome do app ao lado do ícone, indicador em ponto ou barra, e só os apps desta tela.
+  - **Configurações rápidas:** escolha quais botões aparecem (Wi-Fi, Bluetooth, projetar tela, hotspot, painel do Windows, notificações), em que ordem, e o modo compacto só com ícones. O padrão agora é mais limpo: Wi-Fi, Bluetooth e notificações.
+  - **Pastas** (antes "grupos"): juntam apps fixados num bloco; agora com cor. Crie pelo botão direito num app fixado › Criar pasta.
+  - **Uso de IA:** escolha se o card mostra ChatGPT (Codex), Claude Code ou os dois.
+- **Widgets novos:**
+  - **Dispositivos sem fio:** fone, mouse, teclado, controle e celular conectados por Bluetooth, com a bateria em % quando o aparelho informa.
+  - **Velocidade da rede:** download e upload em tempo real.
+  - **Uso do disco:** barra de ocupação do disco do sistema e espaço livre.
+  - **Notas rápidas:** um bloquinho que abre da barra e salva sozinho em `%LOCALAPPDATA%\OpenTaskbar\notas.txt`.
+  - **Uso de IA:** "Sessão" e "Semanal" com barras verdes. ChatGPT (Codex) mostra a % real e o tempo até renovar, a partir dos logs do Codex CLI. Claude Code mostra os tokens do bloco de 5 horas e dos últimos 7 dias, a partir dos logs do Claude Code. Tudo lido de arquivos do PC, sem login nem token.
 ## 0.3.2 - 2026-11-17
 
 - **Procurar atualização:** novo botão em Configurações › Geral › "Inicialização e atualizações" e no menu do botão direito da barra. Mostra "Versão X disponível" com "Atualizar agora" (baixa, confere o SHA-256 e reinicia já atualizado) ou "Você já está na versão mais recente".

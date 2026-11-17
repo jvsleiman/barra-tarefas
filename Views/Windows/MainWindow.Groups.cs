@@ -30,23 +30,23 @@ public partial class MainWindow
             .GroupBy(app => app.ExecutablePath, StringComparer.OrdinalIgnoreCase)
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.OrdinalIgnoreCase);
         var resolved = ConfiguredGroups
-            .Select(group => (group.Name, Apps: group.Apps
+            .Select(group => (group.Name, group.Color, Apps: group.Apps
                 .Select(path => pinnedByPath.GetValueOrDefault(path))
                 .OfType<DockApp>()
                 .Where(app => !IsHiddenByProfile(app))
                 .ToList()))
             .Where(group => group.Apps.Count > 0)
             .ToList();
-        var signature = string.Join(";", resolved.Select(group => group.Name + "=" + string.Join("|", group.Apps.Select(app => app.ExecutablePath))));
+        var signature = string.Join(";", resolved.Select(group => group.Name + "#" + group.Color + "=" + string.Join("|", group.Apps.Select(app => app.ExecutablePath))));
         if (signature == _appliedGroupSignature) return;
         _appliedGroupSignature = signature;
 
         foreach (var group in _appGroups) group.Dispose();
         _appGroups.Clear();
         _groupedPaths.Clear();
-        foreach (var (name, apps) in resolved)
+        foreach (var (name, color, apps) in resolved)
         {
-            _appGroups.Add(new DockAppGroupView(name, apps));
+            _appGroups.Add(new DockAppGroupView(name, apps, color));
             foreach (var app in apps) _groupedPaths.Add(app.ExecutablePath);
         }
     }
