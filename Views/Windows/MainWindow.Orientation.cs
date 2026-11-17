@@ -25,6 +25,19 @@ public partial class MainWindow
     /// <summary>Launch bounce runs away from the edge: up for the bottom dock, sideways for side docks.</summary>
     private double BounceDirection => Edge == DockEdge.Left ? -1 : 1;
 
+    /// <summary>Section separators: thin lines in the classic look, collapsed in the tile look (tiles already separate items).</summary>
+    private void ApplyDividerStyle()
+    {
+        var vertical = Edge != DockEdge.Bottom;
+        var tiles = _preferences.Current.IconTiles;
+        foreach (var divider in new[] { StartDivider, RunningAppsDivider, ExtrasDivider, WidgetDivider })
+        {
+            divider.Width = tiles ? 0 : vertical ? 22 : 1;
+            divider.Height = tiles ? 0 : vertical ? 1 : 22;
+            divider.Margin = tiles ? new Thickness(0) : vertical ? new Thickness(0, 4, 0, 4) : new Thickness(4, 0, 4, 0);
+        }
+    }
+
     private void ApplyEdge()
     {
         var edge = Edge;
@@ -89,12 +102,8 @@ public partial class MainWindow
         RunningApps.ItemsPanel = panel;
         StackItems.ItemsPanel = panel;
         DockWidgets.ItemsPanel = panel;
-        foreach (var divider in new[] { StartDivider, RunningAppsDivider, ExtrasDivider, WidgetDivider })
-        {
-            divider.Width = vertical ? 22 : 1;
-            divider.Height = vertical ? 1 : 22;
-            divider.Margin = vertical ? new Thickness(0, 4, 0, 4) : new Thickness(4, 0, 4, 0);
-        }
+        AppGroupItems.ItemsPanel = panel;
+        ApplyDividerStyle();
 
         // Widgets are designed for a horizontal shelf; side docks keep only the apps.
         DockScrollViewer.HoverHeadroom = vertical ? 0 : DockMetrics.Headroom;

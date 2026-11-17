@@ -63,6 +63,7 @@ public partial class MainWindow
         _filteredSource = null;
         ApplyStartPlacement();
         ApplyEdge();
+        ApplyDividerStyle();
         ApplySecondaryDocks();
         RebuildAppGroups();
         ApplyProfileFilter();

@@ -79,6 +79,8 @@ public partial class SettingsWindow : Window
         OpacitySlider.Value = _applied.SurfaceOpacity * 100;
         UpdateOpacityLabel();
         MagnificationToggle.IsChecked = _applied.MagnificationEnabled;
+        IconTilesToggle.IsChecked = _applied.IconTiles;
+        ClockWeatherToggle.IsChecked = _applied.ClockShowWeather;
         CompactSize.IsChecked = _applied.Size == DockSize.Compact;
         MediumSize.IsChecked = _applied.Size == DockSize.Medium;
         LargeSize.IsChecked = _applied.Size == DockSize.Large;
@@ -222,6 +224,8 @@ public partial class SettingsWindow : Window
             Widgets = enabledWidgets,
             InstalledWidgets = installedWidgets,
             MagnificationEnabled = MagnificationToggle.IsChecked == true,
+            IconTiles = IconTilesToggle.IsChecked == true,
+            ClockShowWeather = ClockWeatherToggle.IsChecked == true,
             Layout = FullWidthLayout.IsChecked == true ? DockLayout.FullWidth : DockLayout.Floating,
             Size = LargeSize.IsChecked == true ? DockSize.Large : MediumSize.IsChecked == true ? DockSize.Medium : DockSize.Compact,
             DockScale = Math.Round(DockScaleSlider.Value) / 100,
@@ -587,6 +591,8 @@ public partial class SettingsWindow : Window
         OpacitySlider.Value = settings.SurfaceOpacity * 100;
         UpdateOpacityLabel();
         MagnificationToggle.IsChecked = settings.MagnificationEnabled;
+        IconTilesToggle.IsChecked = settings.IconTiles;
+        ClockWeatherToggle.IsChecked = settings.ClockShowWeather;
         CompactSize.IsChecked = settings.Size == DockSize.Compact;
         MediumSize.IsChecked = settings.Size == DockSize.Medium;
         LargeSize.IsChecked = settings.Size == DockSize.Large;

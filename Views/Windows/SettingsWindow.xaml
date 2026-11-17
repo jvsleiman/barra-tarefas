@@ -68,6 +68,16 @@
                                 <TextBlock Text="{local:Loc Magnification}" Style="{StaticResource SettingsRowLabel}" />
                             </DockPanel></Border>
                             <Border Style="{StaticResource SettingsRow}"><DockPanel>
+                                <CheckBox x:Name="IconTilesToggle" DockPanel.Dock="Right" Style="{StaticResource SettingsSwitch}"
+                                          AutomationProperties.Name="{local:Loc IconTiles}" />
+                                <TextBlock Text="{local:Loc IconTiles}" Style="{StaticResource SettingsRowLabel}" />
+                            </DockPanel></Border>
+                            <Border Style="{StaticResource SettingsRow}"><DockPanel>
+                                <CheckBox x:Name="ClockWeatherToggle" DockPanel.Dock="Right" Style="{StaticResource SettingsSwitch}"
+                                          AutomationProperties.Name="{local:Loc ClockShowWeather}" />
+                                <TextBlock Text="{local:Loc ClockShowWeather}" Style="{StaticResource SettingsRowLabel}" />
+                            </DockPanel></Border>
+                            <Border Style="{StaticResource SettingsRow}"><DockPanel>
                                 <CheckBox x:Name="PreviewsToggle" DockPanel.Dock="Right" Style="{StaticResource SettingsSwitch}"
                                           AutomationProperties.Name="{local:Loc Previews}" AutomationProperties.HelpText="{local:Loc PreviewsDescription}" />
                                 <TextBlock Text="{local:Loc Previews}" Style="{StaticResource SettingsRowLabel}" />

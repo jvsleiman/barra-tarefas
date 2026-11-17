@@ -31,8 +31,7 @@ public static class ThemeManager
         {
             if (enabled) Materials.Remove(key);
             else Materials[key] = Brushes.Transparent;
-        }
-    }
+        }    }
 
     public static void SetSurfaceOpacity(double opacity)
     {

@@ -133,9 +133,9 @@
         <DataTemplate x:Key="AppGroupTemplate">
             <Button Style="{StaticResource DockButton}" Click="AppGroup_Click" AutomationProperties.Name="{Binding Name}"
                     ToolTip="{Binding ToolTip}" ToolTipService.InitialShowDelay="650" ContextMenu="{StaticResource GroupContextMenu}">
-                <ItemsControl ItemsSource="{Binding PreviewIcons}" Width="30" Height="30" IsHitTestVisible="False">
+                <ItemsControl ItemsSource="{Binding PreviewIcons}" Width="30" VerticalAlignment="Center" IsHitTestVisible="False">
                     <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate><UniformGrid Rows="2" Columns="2" /></ItemsPanelTemplate>
+                        <ItemsPanelTemplate><UniformGrid Columns="2" /></ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
