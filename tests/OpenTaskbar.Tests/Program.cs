@@ -14,6 +14,8 @@ InitialLanguageChecks();
 ProcessControlChecks();
 SuggestionChecks();
 UpdateFileChecks();
+PersonalizationChecks();
+AiUsageChecks();
 checks += RunningAppChecks.Run();
 checks += WidgetViewChecks.Run();
 Console.WriteLine($"{checks} behavior checks passed.");
@@ -403,6 +405,93 @@ void UpdateFileChecks()
           && UpdateChecker.ValidateLocalFile(app, new Version(0, 0, 1)) is { ErrorKey: null, Version: not null },
         "An OpenTaskbar build must install only when it is newer than the running one.");
     Check(UpdateChecker.ReleasesPage == "https://github.com/jvsleiman/barra-tarefas/releases/latest", "Downloads must point at this fork's releases.");
+}
+void PersonalizationChecks()
+{
+    var store = new DockSettingsStore(Path.Combine(Path.GetTempPath(), $"p-{Guid.NewGuid():N}.json"));
+    Check(store.Save(new DockSettings(AccentColor: "#3B82F6", BarColor: "", TileOpacity: 0.1, CornerRadius: 8,
+              QuickSettingsItems: ["Wifi", "Notifications"], StartIcon: StartIconStyle.Text, AiUsageProviders: ["Codex"])) is null,
+        "Valid personalization must save.");
+    Check(store.Save(new DockSettings(AccentColor: "blue")) is not null && store.Save(new DockSettings(TileColor: "#12345")) is not null
+          && store.Save(new DockSettings(CornerRadius: 40)) is not null && store.Save(new DockSettings(TileOpacity: 0.9)) is not null
+          && store.Save(new DockSettings(StartIconScale: 3)) is not null && store.Save(new DockSettings(QuickSettingsItems: ["Wifi", "Wifi"])) is not null
+          && store.Save(new DockSettings(QuickSettingsItems: ["Radio"])) is not null && store.Save(new DockSettings(AiUsageProviders: ["Gemini"])) is not null,
+        "Invalid colors, ranges, quick-settings items and providers must be rejected.");
+    Check(new DockSettings() is { QuickSettingsCompact: true, StartIcon: StartIconStyle.GreyLogo, IndicatorStyle: RunningIndicatorStyle.Dot, CornerRadius: 15 }
+          && new DockSettings().EffectiveQuickSettingsItems.SequenceEqual(["Wifi", "Bluetooth", "Notifications"]),
+        "Defaults must keep the 0.3.x look with a cleaner quick-settings set.");
+    Check(OpenTaskbar.Widgets.QuickSettingsWidget.Arrange(["Notifications", "Wifi", "Panel"]).SequenceEqual(["Notifications", "Wifi", "Divider", "Panel"])
+          && OpenTaskbar.Widgets.QuickSettingsWidget.Arrange(["Wifi", "Bluetooth"]).SequenceEqual(["Wifi", "Bluetooth"])
+          && OpenTaskbar.Widgets.QuickSettingsWidget.Arrange(["Wifi", "Bogus", "Wifi"]).SequenceEqual(["Wifi"]),
+        "Quick settings keep the chosen order, drop unknown/duplicate items and divide radios from Windows panels.");
+    Check(ThemeManager.ParseColor("#3B82F6") is { R: 0x3B, G: 0x82, B: 0xF6 } && ThemeManager.ParseColor("") is null && ThemeManager.ParseColor("red") is null
+          && ThemeManager.TileColor("", 0.055, System.Windows.Media.Colors.White) is { A: 14, R: 255 }
+          && ThemeManager.TileColor("#FF0000", 0.2, System.Windows.Media.Colors.White) is { A: 51, R: 255, G: 0 },
+        "Colors parse as #RRGGBB and tiles combine the chosen color with their opacity.");
+    Check(WirelessDevices.Classify("WH-1000XM4", majorClass: 4) == WirelessKind.Headset
+          && WirelessDevices.Classify("Keys", majorClass: 5, minorClass: 0x10) == WirelessKind.Keyboard
+          && WirelessDevices.Classify("MX Master 3", majorClass: 5, minorClass: 0x20) == WirelessKind.Mouse
+          && WirelessDevices.Classify("Wireless Controller", majorClass: 5, minorClass: 0x08 | 0x02) == WirelessKind.Controller
+          && WirelessDevices.Classify("Galaxy S23", majorClass: 2) == WirelessKind.Phone
+          && WirelessDevices.Classify("Xbox Wireless Controller") == WirelessKind.Controller
+          && WirelessDevices.Classify("Fone JBL") == WirelessKind.Headset && WirelessDevices.Classify("Lâmpada") == WirelessKind.Other,
+        "Wireless devices must be recognised by class of device, then by name.");
+    var pt = CultureInfo.GetCultureInfo("pt-BR");
+    Check(OpenTaskbar.Widgets.NetworkSpeedWidget.FormatRate(850_000, pt) == "850 KB/s" && OpenTaskbar.Widgets.NetworkSpeedWidget.FormatRate(12_400_000, pt) == "12,4 MB/s"
+          && OpenTaskbar.Widgets.NetworkSpeedWidget.FormatRate(0, pt) == "0 B/s", "Network speed must format like Task Manager.");
+    Check(OpenTaskbar.Widgets.QuickNotesWidget.PreviewOf("\r\n  \r\n  Comprar café  \r\nligar", "Notas") == "Comprar café"
+          && OpenTaskbar.Widgets.QuickNotesWidget.PreviewOf("", "Notas") == "Notas", "Notes preview shows the first written line.");
+}
+
+void AiUsageChecks()
+{
+    var now = new DateTimeOffset(2026, 11, 17, 15, 0, 0, TimeSpan.Zero);
+    var reset = now.AddHours(2).AddMinutes(10).ToUnixTimeSeconds();
+    var weekly = now.AddDays(3).ToUnixTimeSeconds();
+    var codexLine = "{\"timestamp\":\"2026-11-17T14:59:00Z\",\"type\":\"event_msg\",\"payload\":{\"type\":\"token_count\",\"rate_limits\":{\"primary\":{\"used_percent\":42.5,\"window_minutes\":300,\"resets_at\":" + reset + "},\"secondary\":{\"used_percent\":16.0,\"window_minutes\":10080,\"resets_at\":" + weekly + "}}}}";
+    var codex = AiUsage.ParseCodexLine(codexLine, now);
+    Check(codex is { Session.Percent: 42.5, Weekly.Percent: 16.0 } && codex.Session!.ResetsAt == DateTimeOffset.FromUnixTimeSeconds(reset)
+          && AiUsage.FormatRemaining(codex.Session.ResetsAt!.Value, now) == "2h 10m" && AiUsage.FormatRemaining(codex.Weekly!.ResetsAt!.Value, now) == "3d 0h",
+        "Codex rate limits must map 5-hour and weekly windows with their reset countdown.");
+    var weeklyOnly = "{\"payload\":{\"rate_limits\":{\"primary\":{\"used_percent\":16.0,\"window_minutes\":10080,\"resets_at\":" + now.AddMinutes(-1).ToUnixTimeSeconds() + "},\"secondary\":null}}}";
+    Check(AiUsage.ParseCodexLine(weeklyOnly, now) is { Session: null, Weekly: { Percent: 0, ResetsAt: null } },
+        "A weekly-only primary window (as in João's logs) must count as weekly, and a passed reset reads 0%.");
+    Check(AiUsage.ParseCodexLine("not json", now) is null && AiUsage.ParseCodexLine("""{"payload":{}}""", now) is null, "Broken Codex lines must be skipped.");
+
+    string Claude(string at, string id, int input, int output) =>
+        "{\"timestamp\":\"" + at + "\",\"requestId\":\"r-" + id + "\",\"message\":{\"id\":\"m-" + id + "\",\"usage\":{\"input_tokens\":" + input + ",\"output_tokens\":" + output + ",\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0}}}";
+    var lines = new[]
+    {
+        Claude("2026-11-10T09:00:00Z", "old", 999, 1),          // outside the 7 days
+        Claude("2026-11-16T08:30:00Z", "a", 1000, 500),        // earlier block
+        Claude("2026-11-17T13:40:00Z", "b", 2000, 1000),       // current block starts 13:00
+        Claude("2026-11-17T13:40:00Z", "b", 2000, 1000),       // streamed duplicate
+        Claude("2026-11-17T14:55:00Z", "c", 4000, 2000),
+        "garbage line with \"usage\""
+    };
+    var claude = AiUsage.SumClaude(lines, now);
+    Check(claude is { Session: { Tokens: 9000, Percent: null }, Weekly.Tokens: 10500 }
+          && claude.Session.ResetsAt == new DateTimeOffset(2026, 11, 17, 18, 0, 0, TimeSpan.Zero),
+        "Claude Code usage must sum the current 5-hour block and 7 days, counting streamed messages once.");
+    Check(AiUsage.SumClaude([Claude("2026-11-17T08:00:00Z", "x", 10, 10)], now) is { Session: null, Weekly.Tokens: 20 },
+        "An expired 5-hour block must show no session usage.");
+    Check(AiUsage.FormatTokens(1_234_567, CultureInfo.GetCultureInfo("pt-BR")) == "1,2M" && AiUsage.FormatTokens(9_000, CultureInfo.InvariantCulture) == "9k",
+        "Token counts must be short.");
+
+    // Fixture folders: missing data reads as "Sem dados", files are found recursively.
+    var root = Path.Combine(Path.GetTempPath(), $"ai-{Guid.NewGuid():N}");
+    try
+    {
+        Check(!AiUsage.ReadCodex(now, Path.Combine(root, "missing")).HasData && !AiUsage.ReadClaude(now, Path.Combine(root, "missing")).HasData,
+            "Missing log folders must give 'no data', not an error.");
+        Directory.CreateDirectory(Path.Combine(root, "codex", "2026", "11"));
+        File.WriteAllLines(Path.Combine(root, "codex", "2026", "11", "s.jsonl"), ["{\"type\":\"other\"}", codexLine, "{\"type\":\"other\"}"]);
+        Check(AiUsage.ReadCodex(now, Path.Combine(root, "codex")) is { Session.Percent: 42.5 }, "The newest Codex rate-limit event must be found in nested folders.");
+    }
+    finally
+    {
+        if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+    }
 }
 sealed class TestClock : TimeProvider
 {

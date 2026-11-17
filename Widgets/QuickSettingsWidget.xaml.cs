@@ -68,13 +68,15 @@ public partial class QuickSettingsWidget : DockWidget
 
     /// <summary>
     /// Display order for the chosen items (unknown ids dropped, duplicates removed); the divider goes before the
-    /// first Windows-panel item (Panel/Notifications) when a radio item precedes it.
+    /// first Windows-panel item (Panel/Notifications) that directly follows a radio item.
     /// </summary>
     public static IReadOnlyList<string> Arrange(IReadOnlyList<string> items)
     {
         var ordered = items.Where(DockSettings.AllQuickSettingsItems.Contains).Distinct(StringComparer.Ordinal).ToList();
-        var firstPanel = ordered.FindIndex(item => item is "Panel" or "Notifications");
-        if (firstPanel > 0 && ordered.Take(firstPanel).Any(item => item is not ("Panel" or "Notifications"))) ordered.Insert(firstPanel, "Divider");
+        static bool IsPanel(string item) => item is "Panel" or "Notifications";
+        // One divider: at the first place a radio item (Wi-Fi, Bluetooth, cast, hotspot) is followed by a Windows panel item.
+        var split = Enumerable.Range(1, Math.Max(0, ordered.Count - 1)).FirstOrDefault(index => !IsPanel(ordered[index - 1]) && IsPanel(ordered[index]));
+        if (split > 0) ordered.Insert(split, "Divider");
         return ordered;
     }
 
