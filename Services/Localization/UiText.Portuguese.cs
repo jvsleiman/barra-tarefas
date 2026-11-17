@@ -9,6 +9,15 @@ public sealed partial class UiText
     private static readonly IReadOnlyDictionary<string, string> Portuguese = new Dictionary<string, string>
     {
         ["Settings"] = "Configurações",
+        ["NoUsageData"] = "Sem dados de uso",
+        ["NoDevices"] = "Nenhum dispositivo",
+        ["NoDevicesHint"] = "Nenhum dispositivo Bluetooth conectado agora. Clique para abrir as configurações de Bluetooth.",
+        ["ResetsIn"] = "renova em {0}",
+        ["SectionBlockOrder"] = "Ordem dos blocos",
+        ["BlockOrderDescription"] = "A ordem dos cards na barra; também dá para arrastar direto na barra. A posição do botão Iniciar fica em Atalhos.",
+        ["StartIconSystem"] = "Ícone do Windows…",
+        ["StartIconGallery"] = "Ícones do Windows",
+        ["StartIconAccount"] = "Foto da conta",
         ["WidgetDevices"] = "Dispositivos sem fio",
         ["WidgetDevicesDescription"] = "Fones, mouse, teclado e controle conectados por Bluetooth, com a bateria em %.",
         ["WidgetNetSpeed"] = "Velocidade da rede",

@@ -31,8 +31,8 @@ public sealed class AiUsageWidget : DockWidget
         _nextRead = now.AddMinutes(1);
         try
         {
-            var providers = Settings.AiUsageProviders ?? AiUsage.Providers;
-            var reports = await Task.Run(() => providers.Select(provider => provider == AiUsage.Codex
+            var providers = Settings.AiUsageProviders ?? AiUsage.DefaultProviders;
+            var reports = await Task.Run(() => providers.Select(provider => AiUsage.IsLinkOnly(provider) ? new AiUsageReport(provider, null, null) : provider == AiUsage.Codex
                 ? AiUsage.ReadCodex(DateTimeOffset.Now)
                 : AiUsage.ReadClaude(DateTimeOffset.Now)).ToList());
             if (IsActive) Render(reports, DateTimeOffset.Now);
@@ -46,61 +46,63 @@ public sealed class AiUsageWidget : DockWidget
     private void Render(IReadOnlyList<AiUsageReport> reports, DateTimeOffset now)
     {
         _cards.Children.Clear();
+        var culture = UiText.CultureFor(UiText.Current.Language);
         foreach (var report in reports)
         {
-            var title = CardParts.Row(CardParts.Icon("IconSparkles", 13, "UsageBarBrush"), CardParts.Text(report.Provider == AiUsage.Codex ? "ChatGPT" : "Claude", 12));
-            ((TextBlock)title.Children[1]).Margin = new Thickness(5, 0, 0, 0);
-            var body = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
-            body.Children.Add(title);
-            if (!report.HasData)
+            if (AiUsage.IsLinkOnly(report.Provider))
             {
-                body.Children.Add(CardParts.Text(UiText.Get("NoData"), 11, FontWeights.Normal, "TextSecondary"));
-            }
-            else
-            {
-                body.Children.Add(UsageRow(UiText.Get("UsageSession"), report.Session, now));
-                body.Children.Add(UsageRow(UiText.Get("UsageWeekly"), report.Weekly, now));
+                // No local usage data for these: a logo shortcut that opens the app.
+                var label = CardParts.Text(report.Provider, 11);
+                label.Margin = new Thickness(5, 0, 0, 0);
+                var link = CardParts.Card(CardParts.Row(CardParts.Icon("IconSparkles", 16, "TextSecondary"), label), (_, _) => Report(AiUsage.OpenApp(report.Provider)));
+                link.Padding = new Thickness(8, 0, 10, 0);
+                link.ToolTip = $"{report.Provider} · {UiText.Get("NoUsageData")}";
+                _cards.Children.Add(link);
+                continue;
             }
 
-            var card = CardParts.Card(body);
-            card.ToolTip = report.Provider == AiUsage.Codex ? UiText.Get("UsageCodexSource") : UiText.Get("UsageClaudeSource");
+            var name = report.Provider == AiUsage.Codex ? "Codex" : "Claude";
+            var row = CardParts.Row(CardParts.Icon("IconSparkles", 16, "UsageBarBrush"));
+            row.Children.Add(Gauge("5h", report.Session, culture));
+            row.Children.Add(Gauge("7d", report.Weekly, culture));
+            var card = CardParts.Card(row);
+            card.Padding = new Thickness(8, 0, 8, 0);
+            card.ToolTip = Details(name, report, now, culture);
             _cards.Children.Add(card);
         }
     }
 
-    private static StackPanel UsageRow(string label, UsageWindow? usage, DateTimeOffset now)
+    /// <summary>A small ring: the percentage (Codex) or a compact token count (Claude), labelled 5h / 7d.</summary>
+    private static StackPanel Gauge(string label, UsageWindow? usage, System.Globalization.CultureInfo culture)
     {
-        var name = CardParts.Text(label, 10, FontWeights.Normal, "TextSecondary");
-        name.Width = 46;
-        var (bar, fill) = CardParts.Progress(54);
-        var value = CardParts.Text(string.Empty, 10, FontWeights.SemiBold);
-        value.Margin = new Thickness(6, 0, 0, 0);
-        var culture = UiText.CultureFor(UiText.Current.Language);
-        if (usage?.Percent is { } percent)
+        var ring = new RingMeter
         {
-            CardParts.SetProgress(bar, fill, percent / 100);
-            value.Text = $"{Math.Round(percent)}%";
-        }
-        else if (usage?.Tokens is { } tokens)
+            Width = 28, Height = 28, StrokeThickness = 3, FontSize = 9,
+            Value = usage?.Percent is { } percent ? percent / 100 : 0,
+            Text = usage?.Percent is { } p ? $"{Math.Round(p)}" : usage?.Tokens is { } tokens ? AiUsage.FormatTokens(tokens, culture) : "–"
+        };
+        ring.SetResourceReference(RingMeter.ValueBrushProperty, "UsageBarBrush");
+        ring.SetResourceReference(RingMeter.TrackBrushProperty, "WidgetTrack");
+        ring.SetResourceReference(RingMeter.ForegroundProperty, "TextPrimary");
+        var caption = CardParts.Text(label, 9, FontWeights.Normal, "TextSecondary");
+        caption.HorizontalAlignment = HorizontalAlignment.Center;
+        caption.Margin = new Thickness(0, -1, 0, 0);
+        return new StackPanel { Margin = new Thickness(6, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center, Children = { ring, caption } };
+    }
+
+    /// <summary>Everything the rings leave out: exact numbers, reset times and where the data comes from.</summary>
+    private static string Details(string name, AiUsageReport report, DateTimeOffset now, System.Globalization.CultureInfo culture)
+    {
+        if (!report.HasData) return $"{name} · {UiText.Get("NoData")}";
+        string Line(string label, UsageWindow? usage)
         {
-            bar.Visibility = Visibility.Collapsed;
-            value.Text = UiText.Format("UsageTokens", AiUsage.FormatTokens(tokens, culture));
-            value.Margin = new Thickness(0);
-        }
-        else
-        {
-            bar.Visibility = Visibility.Collapsed;
-            value.Text = "—";
+            if (usage is null) return $"{label}: —";
+            var value = usage.Percent is { } percent ? $"{Math.Round(percent)}%" : usage.Tokens is { } tokens ? UiText.Format("UsageTokens", AiUsage.FormatTokens(tokens, culture)) : "—";
+            var reset = usage.ResetsAt is { } at && AiUsage.FormatRemaining(at, now) is { Length: > 0 } left ? $" · {UiText.Format("ResetsIn", left)}" : string.Empty;
+            return $"{label}: {value}{reset}";
         }
 
-        var row = CardParts.Row(name, bar, value);
-        if (usage?.ResetsAt is { } reset && AiUsage.FormatRemaining(reset, now) is { Length: > 0 } left)
-        {
-            var remaining = CardParts.Text(left, 10, FontWeights.Normal, "TextSecondary");
-            remaining.Margin = new Thickness(6, 0, 0, 0);
-            row.Children.Add(remaining);
-        }
-
-        return row;
+        var source = report.Provider == AiUsage.Codex ? UiText.Get("UsageCodexSource") : UiText.Get("UsageClaudeSource");
+        return $"{name}\n{Line(UiText.Get("UsageSession"), report.Session)}\n{Line(UiText.Get("UsageWeekly"), report.Weekly)}\n{source}";
     }
 }

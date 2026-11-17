@@ -22,7 +22,30 @@ public static class AiUsage
 {
     public const string Codex = "Codex";
     public const string Claude = "Claude";
-    public static readonly IReadOnlyList<string> Providers = [Codex, Claude];
+    public const string ChatGpt = "ChatGPT";
+    public const string Grok = "Grok";
+    public static readonly IReadOnlyList<string> Providers = [Codex, Claude, ChatGpt, Grok];
+    public static readonly IReadOnlyList<string> DefaultProviders = [Codex, Claude];
+
+    /// <summary>
+    /// ChatGPT (desktop app) and Grok keep no readable usage data on the PC (checked: only app files, no limits), so they
+    /// are shortcuts: the logo opens the app, or the website when the app isn't installed.
+    /// </summary>
+    public static bool IsLinkOnly(string provider) => provider is ChatGpt or Grok;
+
+    public static string? OpenApp(string provider)
+    {
+        var (appId, site) = provider == Grok ? ("electron.app.Grok Bot", "https://grok.com") : ("OpenAI.Codex_2p2nqsd0c76g0!App", "https://chatgpt.com");
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo("explorer.exe", $"shell:AppsFolder\\{appId}") { UseShellExecute = true });
+            return null;
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            return ShellShortcuts.OpenUri(site);
+        }
+    }
 
     public static AiUsageReport ReadCodex(DateTimeOffset now, string? root = null)
     {

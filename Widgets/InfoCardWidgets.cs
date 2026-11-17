@@ -20,7 +20,7 @@ public sealed class WirelessDevicesWidget : DockWidget
     {
         _card = CardParts.Card(_row, (_, _) => Report(ShellShortcuts.OpenUri("ms-settings:bluetooth")));
         Content = _card;
-        HasData = false;
+        Render([]);
     }
 
     protected override void OnActivated() => _nextRead = DateTime.MinValue;
@@ -57,7 +57,14 @@ public sealed class WirelessDevicesWidget : DockWidget
 
         _card.ToolTip = devices.Count == 0 ? null : string.Join("\n", devices.Select(device =>
             device.Battery is { } level ? $"{device.Name} · {level}%" : device.Name));
-        HasData = devices.Count > 0;
+        // Stay on the bar even with nothing connected, otherwise adding the widget looks broken.
+        if (devices.Count == 0)
+        {
+            var empty = CardParts.Text(UiText.Get("NoDevices"), 11, FontWeights.Normal, "TextSecondary");
+            empty.Margin = new Thickness(6, 0, 0, 0);
+            _row.Children.Add(CardParts.Row(CardParts.Icon("IconBluetooth", 15, "TextSecondary"), empty));
+            _card.ToolTip = UiText.Get("NoDevicesHint");
+        }
     }
 
     public static string IconFor(WirelessKind kind) => kind switch

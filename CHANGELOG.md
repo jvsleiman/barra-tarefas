@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 - 2026-11-17
+
+- **Dispositivos sem fio:** a busca agora usa a lista de dispositivos Bluetooth pareados e conectados do Windows, e um dispositivo com erro não esconde mais os outros. O card não some quando nada está conectado: mostra "Nenhum dispositivo" (antes parecia que o widget não tinha sido adicionado).
+- **Uso de IA mais visual:** cada serviço virou um card com o logo e dois anéis pequenos (5h e 7d) só com a %; no Claude Code o anel mostra os tokens. Tempo para renovar e detalhes ficam na dica ao passar o mouse.
+- **Ordem dos blocos:** Configurações › Barra › "Ordem dos blocos" muda a ordem dos cards da barra (relógio, bandeja, calendário, widgets) com ↑/↓ e liga/desliga cada um. Também dá para arrastar os cards direto na barra.
+- **ChatGPT e Grok no card de IA:** como esses apps não guardam dados de uso no PC, aparecem como atalho com o logo (abre o app ou o site) e "Sem dados de uso" na dica; o Codex continua com a % real. Ative em Configurações › Barra › Uso de IA.
+- **Botão Iniciar:** nova opção "Ícone do Windows…", com uma galeria dos ícones do próprio Windows (imageres.dll e shell32.dll) e a foto da conta.
 ## 0.4.0 - 2026-11-17
 
 Feita a partir das suas sugestões.

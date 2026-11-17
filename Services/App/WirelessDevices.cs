@@ -20,43 +20,65 @@ public static class WirelessDevices
     private static readonly Guid BatteryService = new("0000180f-0000-1000-8000-00805f9b34fb");
     private static readonly Guid BatteryLevel = new("00002a19-0000-1000-8000-00805f9b34fb");
 
+    // Bluetooth association endpoints (paired devices) that are connected right now: classic and LE.
+    private const string ClassicProtocol = "{e0cbf06c-cd8b-4647-bb8a-263b43f0f974}";
+    private const string LowEnergyProtocol = "{bb7bb05e-5972-42b5-94fc-76eaa7084d49}";
+    private const string ConnectedProperty = "System.Devices.Aep.IsConnected";
+
     public static async Task<IReadOnlyList<WirelessDevice>> ReadAsync(CancellationToken cancellation)
     {
         var devices = new Dictionary<string, WirelessDevice>(StringComparer.OrdinalIgnoreCase);
-        try
+        foreach (var (protocol, lowEnergy) in new[] { (ClassicProtocol, false), (LowEnergyProtocol, true) })
         {
-            var classic = await DeviceInformation.FindAllAsync(
-                BluetoothDevice.GetDeviceSelectorFromConnectionStatus(BluetoothConnectionStatus.Connected), [BatteryProperty]);
-            foreach (var info in classic)
+            IReadOnlyList<DeviceInformation> found;
+            try
             {
-                cancellation.ThrowIfCancellationRequested();
-                using var device = await BluetoothDevice.FromIdAsync(info.Id);
-                var kind = device is null ? Classify(info.Name) : Classify(info.Name, (int)device.ClassOfDevice.MajorClass, (int)device.ClassOfDevice.MinorClass);
-                devices[info.Name] = new WirelessDevice(info.Name, kind, ReadBatteryProperty(info));
+                var query = $"System.Devices.Aep.ProtocolId:=\"{protocol}\" AND {ConnectedProperty}:=System.StructuredQueryType.Boolean#True";
+                found = await DeviceInformation.FindAllAsync(query, [BatteryProperty, ConnectedProperty], DeviceInformationKind.AssociationEndpoint);
+            }
+            catch (Exception ex) when (ex is UnauthorizedAccessException or System.Runtime.InteropServices.COMException or ArgumentException)
+            {
+                AppLog.Warning($"Bluetooth query failed: {ex.Message}");
+                continue;
             }
 
-            var lowEnergy = await DeviceInformation.FindAllAsync(
-                BluetoothLEDevice.GetDeviceSelectorFromConnectionStatus(BluetoothConnectionStatus.Connected), [BatteryProperty]);
-            foreach (var info in lowEnergy.Take(8))
+            foreach (var info in found.Take(12))
             {
                 cancellation.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(info.Name)) continue;
-                var battery = ReadBatteryProperty(info) ?? await ReadGattBatteryAsync(info.Id);
-                using var device = await BluetoothLEDevice.FromIdAsync(info.Id);
-                var kind = Classify(info.Name, appearanceCategory: device?.Appearance.Category);
-                // The same device often shows up as classic and LE; keep the entry that knows the battery.
-                if (!devices.TryGetValue(info.Name, out var existing) || existing.Battery is null)
-                    devices[info.Name] = new WirelessDevice(info.Name, existing?.Kind is { } k && k != WirelessKind.Other ? k : kind, battery ?? existing?.Battery);
+                // One device that refuses access must not hide the others.
+                try
+                {
+                    var battery = ReadBatteryProperty(info);
+                    var kind = Classify(info.Name);
+                    if (!lowEnergy)
+                    {
+                        using var device = await BluetoothDevice.FromIdAsync(info.Id);
+                        if (device is not null) kind = Classify(info.Name, (int)device.ClassOfDevice.MajorClass, (int)device.ClassOfDevice.MinorClass);
+                    }
+                    else
+                    {
+                        battery ??= await ReadGattBatteryAsync(info.Id);
+                        using var device = await BluetoothLEDevice.FromIdAsync(info.Id);
+                        if (kind == WirelessKind.Other && device is not null) kind = Classify(info.Name, appearanceCategory: device.Appearance.Category);
+                    }
+
+                    // The same device often appears as classic and LE; keep what each one knows.
+                    if (devices.TryGetValue(info.Name, out var existing))
+                        devices[info.Name] = existing with { Battery = existing.Battery ?? battery, Kind = existing.Kind != WirelessKind.Other ? existing.Kind : kind };
+                    else
+                        devices[info.Name] = new WirelessDevice(info.Name, kind, battery);
+                }
+                catch (Exception ex) when (ex is UnauthorizedAccessException or System.Runtime.InteropServices.COMException
+                                               or InvalidOperationException or ArgumentException)
+                {
+                    devices.TryAdd(info.Name, new WirelessDevice(info.Name, Classify(info.Name), ReadBatteryProperty(info)));
+                }
             }
-        }
-        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Runtime.InteropServices.COMException or InvalidOperationException or ArgumentException)
-        {
-            AppLog.Warning($"Wireless devices unavailable: {ex.Message}");
         }
 
         return devices.Values.OrderBy(device => device.Kind).ThenBy(device => device.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
     }
-
     /// <summary>
     /// Device type from the Bluetooth class of device (major 4 = audio/video, 5 = peripheral with minor bits for
     /// keyboard/pointing/gamepad, 2 = phone), the LE appearance category, or finally the name.
@@ -85,7 +107,7 @@ public static class WirelessDevices
     private static WirelessKind FromName(string? name)
     {
         var text = name?.ToLowerInvariant() ?? string.Empty;
-        if (new[] { "headset", "headphone", "buds", "airpods", "fone", "earbud", "wh-", "wf-", "jbl", "audio", "speaker", "caixa" }.Any(text.Contains)) return WirelessKind.Headset;
+        if (new[] { "headset", "headphone", "buds", "airpods", "fone", "earbud", "wh-", "wf-", "jbl", "audio", "speaker", "caixa", "soundcore", "h2015", "qcy", "edifier" }.Any(text.Contains)) return WirelessKind.Headset;
         if (new[] { "mouse", "mx master", "mx anywhere", "trackball" }.Any(text.Contains)) return WirelessKind.Mouse;
         if (new[] { "keyboard", "teclado", "keys" }.Any(text.Contains)) return WirelessKind.Keyboard;
         if (new[] { "controller", "gamepad", "xbox", "dualsense", "dualshock", "joy-con", "controle" }.Any(text.Contains)) return WirelessKind.Controller;

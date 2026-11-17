@@ -11,6 +11,15 @@ public sealed partial class UiText : INotifyPropertyChanged
         new Dictionary<string, (string, string)>
         {
             ["Settings"] = ("Ayarlar", "Settings"),
+            ["NoUsageData"] = ("Kullanım verisi yok", "No usage data"),
+            ["NoDevices"] = ("Bağlı cihaz yok", "No devices"),
+            ["NoDevicesHint"] = ("Bağlı Bluetooth cihazı yok. Bluetooth ayarlarını açmak için tıklayın.", "No Bluetooth device is connected. Click to open Bluetooth settings."),
+            ["ResetsIn"] = ("{0} sonra yenilenir", "resets in {0}"),
+            ["SectionBlockOrder"] = ("Blokların sırası", "Order of the blocks"),
+            ["BlockOrderDescription"] = ("Kartların dock'taki sırası; dock'ta sürükleyerek de değiştirebilirsiniz. Başlat düğmesinin yeri Kısayollar'da.", "The order of the cards on the dock; you can also drag them on the dock. The Start button position is under Shortcuts."),
+            ["StartIconSystem"] = ("Windows simgesi…", "Windows icon…"),
+            ["StartIconGallery"] = ("Windows simgeleri", "Windows icons"),
+            ["StartIconAccount"] = ("Hesap resmi", "Account picture"),
             ["WidgetDevices"] = ("Kablosuz cihazlar", "Wireless devices"),
             ["WidgetDevicesDescription"] = ("Bağlı Bluetooth cihazları ve pil yüzdeleri.", "Connected Bluetooth devices and their battery %."),
             ["WidgetNetSpeed"] = ("Ağ hızı", "Network speed"),

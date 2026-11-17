@@ -49,7 +49,7 @@ public partial class MainWindow
             case StartIconStyle.WindowsLogo:
                 StartLogo.Fill = new SolidColorBrush(Color.FromRgb(0x00, 0x78, 0xD4));
                 break;
-            case StartIconStyle.CustomImage when LoadStartImage(settings.StartIconPath) is { } image:
+            case StartIconStyle.CustomImage or StartIconStyle.SystemIcon when (settings.StartIcon == StartIconStyle.SystemIcon ? SystemIconLibrary.Load(settings.StartIconPath) : LoadStartImage(settings.StartIconPath)) is { } image:
                 StartLogo.Visibility = Visibility.Collapsed;
                 var picture = new Image { Source = image, Width = size * 1.3, Height = size * 1.3, Stretch = Stretch.Uniform };
                 RenderOptions.SetBitmapScalingMode(picture, BitmapScalingMode.HighQuality);

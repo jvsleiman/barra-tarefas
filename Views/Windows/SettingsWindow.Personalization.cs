@@ -62,6 +62,7 @@ public partial class SettingsWindow
             ("StartIconGrey", Current.StartIcon == StartIconStyle.GreyLogo, () => SavePersonal(s => s with { StartIcon = StartIconStyle.GreyLogo })),
             ("StartIconWindows", Current.StartIcon == StartIconStyle.WindowsLogo, () => SavePersonal(s => s with { StartIcon = StartIconStyle.WindowsLogo })),
             ("StartIconImage", Current.StartIcon == StartIconStyle.CustomImage, PickStartImage),
+            ("StartIconSystem", Current.StartIcon == StartIconStyle.SystemIcon, PickSystemStartIcon),
             ("StartIconText", Current.StartIcon == StartIconStyle.Text, () => SavePersonal(s => s with { StartIcon = StartIconStyle.Text }))
         ]));
         AppearanceExtras.Children.Add(SliderRow("StartIconSize", 60, 160, Current.StartIconScale * 100, "{0:0}%", value => Current with { StartIconScale = Math.Round(value) / 100 }));
@@ -107,6 +108,13 @@ public partial class SettingsWindow
         return new StackPanel { Margin = new Thickness(0, 4, 0, 10), Children = { label, new Border { Background = new SolidColorBrush(Color.FromRgb(0x5B, 0x6B, 0x8C)), CornerRadius = new CornerRadius(10), Padding = new Thickness(14), HorizontalAlignment = HorizontalAlignment.Left, Child = bar } } };
     }
 
+    private void PickSystemStartIcon()
+    {
+        if (AppDialogs.PickStartIcon() is { } chosen)
+            SavePersonal(settings => settings with { StartIcon = chosen.Style, StartIconPath = chosen.Path });
+        RenderAppearanceExtras();
+    }
+
     private void PickStartImage()
     {
         var picker = new OpenFileDialog { Title = UiText.Get("StartIconPick"), Filter = "Imagens (*.png;*.ico;*.jpg;*.jpeg;*.bmp)|*.png;*.ico;*.jpg;*.jpeg;*.bmp" };
@@ -131,6 +139,20 @@ public partial class SettingsWindow
         ]));
         BarPage.Children.Add(SwitchRow("ThisMonitorApps", "ThisMonitorAppsDescription", Current.ThisMonitorAppsOnly, on => Current with { ThisMonitorAppsOnly = on }));
 
+        // Order of the cards on the bar (the same order drag-and-drop on the bar changes); the switch shows/hides each one.
+        BarPage.Children.Add(Section("SectionBlockOrder", "BlockOrderDescription"));
+        var blockOrder = (Current.WidgetOrder is { Count: > 0 } saved ? saved : OpenTaskbar.Widgets.WidgetCoordinator.DefaultWidgetOrder)
+            .Concat(OpenTaskbar.Widgets.WidgetCoordinator.DefaultWidgetOrder).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var enabled = Current.Widgets ?? [];
+        var shown = blockOrder.Where(id => enabled.Contains(id, StringComparer.OrdinalIgnoreCase)).ToList();
+        foreach (var id in shown)
+        {
+            var position = shown.IndexOf(id);
+            BarPage.Children.Add(ListRow(UiText.Get(OpenTaskbar.Widgets.WidgetCoordinator.GetLabelKey(id) ?? id), true,
+                on => SetWidgetEnabled(id, on),
+                position > 0 ? () => SetBlockOrder(blockOrder, id, shown[position - 1]) : null,
+                position < shown.Count - 1 ? () => SetBlockOrder(blockOrder, id, shown[position + 1]) : null));
+        }
         BarPage.Children.Add(Section("SectionQuickSettings", "QuickSettingsItemsDescription"));
         var chosen = Current.EffectiveQuickSettingsItems.ToList();
         var order = chosen.Concat(DockSettings.AllQuickSettingsItems.Where(item => !chosen.Contains(item))).ToList();
@@ -152,16 +174,38 @@ public partial class SettingsWindow
         foreach (var group in groups) BarPage.Children.Add(FolderRow(group));
 
         BarPage.Children.Add(Section("SectionAiUsage", "AiUsageProvidersDescription"));
-        var providers = Current.AiUsageProviders ?? AiUsage.Providers;
+        var providers = Current.AiUsageProviders ?? AiUsage.DefaultProviders;
         foreach (var provider in AiUsage.Providers)
         {
-            BarPage.Children.Add(ListRow(provider == AiUsage.Codex ? "ChatGPT (Codex)" : "Claude Code", providers.Contains(provider), on =>
+            BarPage.Children.Add(ListRow(provider switch { AiUsage.Codex => "Codex (ChatGPT)", AiUsage.Claude => "Claude Code", _ => provider + " · " + UiText.Get("NoUsageData") }, providers.Contains(provider), on =>
             {
                 var next = AiUsage.Providers.Where(p => p == provider ? on : providers.Contains(p)).ToList();
                 SavePersonal(settings => settings with { AiUsageProviders = next });
                 RenderBarPage();
             }, null, null));
         }
+    }
+
+    /// <summary>Swaps two cards in the saved order (neighbours among the visible ones may be far apart in the full list).</summary>
+    private void SetBlockOrder(IReadOnlyList<string> order, string id, string other)
+    {
+        var list = order.ToList();
+        var a = list.IndexOf(id);
+        var b = list.IndexOf(other);
+        if (a < 0 || b < 0) return;
+        (list[a], list[b]) = (list[b], list[a]);
+        SavePersonal(settings => settings with { WidgetOrder = list });
+        RenderBarPage();
+    }
+
+    private void SetWidgetEnabled(string id, bool on)
+    {
+        SavePersonal(settings => settings with
+        {
+            Widgets = on ? (settings.Widgets ?? []).Append(id).Distinct().ToList() : (settings.Widgets ?? []).Where(w => w != id).ToList(),
+            InstalledWidgets = (settings.InstalledWidgets ?? []).Append(id).Distinct().ToList()
+        });
+        RenderBarPage();
     }
 
     private void SetQuickSettings(IReadOnlyList<string> items)

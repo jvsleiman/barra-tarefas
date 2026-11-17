@@ -17,7 +17,7 @@ public enum HotkeyChoice { Disabled, AltSpace, CtrlSpace, CtrlAltSpace, CtrlAltD
 public enum StartButtonAction { WindowsStart, Launcher }
 public enum StartButtonPlacement { Start, End, Hidden }
 public enum ClockDateStyle { DayAndShortDate, ShortDateOnly, NumericDate, Hidden }
-public enum StartIconStyle { GreyLogo, WindowsLogo, CustomImage, Text }
+public enum StartIconStyle { GreyLogo, WindowsLogo, CustomImage, Text, SystemIcon }
 public enum RunningIndicatorStyle { Dot, Bar }
 
 /// <summary>The individual meters of the System meters widget; a cleared flag hides that meter.</summary>

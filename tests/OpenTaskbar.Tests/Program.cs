@@ -444,6 +444,10 @@ void PersonalizationChecks()
     Check(OpenTaskbar.SettingsWindow.Move(["Wifi", "Bluetooth", "Panel"], "Panel", -1).SequenceEqual(["Wifi", "Panel", "Bluetooth"])
           && OpenTaskbar.SettingsWindow.Move(["Wifi", "Bluetooth"], "Wifi", -1).SequenceEqual(["Wifi", "Bluetooth"])
           && OpenTaskbar.SettingsWindow.Move(["Wifi"], "Missing", 1).SequenceEqual(["Wifi"]), "Quick settings reorder one step and stop at the ends.");
+    Check(SystemIconLibrary.Parse("imageres.dll,15") is { Index: 15 } spec && spec.Path.EndsWith(@"System32\imageres.dll", StringComparison.OrdinalIgnoreCase)
+          && SystemIconLibrary.Parse("imageres.dll") is null && SystemIconLibrary.Parse("evil.exe,1") is null && SystemIconLibrary.Parse("imageres.dll,-2") is null
+          && SystemIconLibrary.Count("imageres.dll") > 50 && SystemIconLibrary.Load("imageres.dll,1") is { PixelWidth: > 0 } && SystemIconLibrary.Load("imageres.dll,999999") is null,
+        "Windows icons must load from imageres.dll by index and reject anything else.");
 }
 
 void AiUsageChecks()

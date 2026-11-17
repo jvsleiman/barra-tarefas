@@ -140,6 +140,63 @@ public static class AppDialogs
         if (UpdateChecker.ApplyFromFile(picker.FileName) is { } error) message.Text = error;
     }
 
+    // ---- Start icon gallery ----
+
+    /// <summary>
+    /// Gallery of Windows' own icons (imageres.dll / shell32.dll) plus the account picture. Returns the chosen style and
+    /// its path ("imageres.dll,15" or an image file), or null when cancelled.
+    /// </summary>
+    public static (Models.StartIconStyle Style, string Path)? PickStartIcon()
+    {
+        var window = CreateWindow(UiText.Get("StartIconGallery"), 560);
+        (Models.StartIconStyle, string)? result = null;
+        var grid = new WrapPanel();
+        var scroll = new ScrollViewer { Height = 340, Content = grid, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Margin = new Thickness(0, 10, 0, 12) };
+        var library = new ComboBox { ItemsSource = SystemIconLibrary.Libraries, SelectedIndex = 0, MinWidth = 160 };
+        void Fill()
+        {
+            grid.Children.Clear();
+            var file = (string)library.SelectedItem;
+            var count = Math.Min(SystemIconLibrary.Count(file), 400);
+            for (var index = 0; index < count; index++)
+            {
+                var spec = $"{file},{index}";
+                if (SystemIconLibrary.Load(spec) is not { } image) continue;
+                var tile = new Button { Width = 48, Height = 48, Margin = new Thickness(2), ToolTip = spec, Content = new Image { Source = image, Width = 32, Height = 32 } };
+                tile.SetResourceReference(FrameworkElement.StyleProperty, "FlyoutButton");
+                tile.Click += (_, _) =>
+                {
+                    result = (Models.StartIconStyle.SystemIcon, spec);
+                    window.DialogResult = true;
+                };
+                grid.Children.Add(tile);
+            }
+        }
+
+        library.SelectionChanged += (_, _) => Fill();
+        var top = new StackPanel { Orientation = Orientation.Horizontal };
+        top.Children.Add(library);
+        if (SystemIconLibrary.AccountPicture() is { } picture)
+        {
+            var account = DialogButton(UiText.Get("StartIconAccount"));
+            account.Click += (_, _) =>
+            {
+                result = (Models.StartIconStyle.CustomImage, picture);
+                window.DialogResult = true;
+            };
+            top.Children.Add(account);
+        }
+
+        var body = new StackPanel();
+        body.Children.Add(Heading(UiText.Get("StartIconGallery")));
+        body.Children.Add(top);
+        body.Children.Add(scroll);
+        body.Children.Add(Buttons(DialogButton(UiText.Get("Cancel"), isCancel: true)));
+        window.Loaded += (_, _) => Fill();
+        Show(window, body, () => library.Focus());
+        return result;
+    }
+
     // ---- Shared frame ----
 
     private static Window CreateWindow(string title, double width)
