@@ -9,6 +9,10 @@
 
 Junto com o `.exe` vai o arquivo `OpenTaskbar.exe.sha256` para conferir a integridade do download.
 
+**Atualizar:** clique com o botão direito na barra › **Procurar atualização** (ou Configurações › Geral). Se o app não conseguir conferir sozinho, use **Instalar de um arquivo…** com o `OpenTaskbar.exe` novo que você baixou.
+
+**Sugestões:** botão direito na barra › **Adicionar sugestão…**. Elas ficam em `%LOCALAPPDATA%\OpenTaskbar\sugestoes.md` e aparecem em Configurações › Sugestões.
+
 # OpenTaskbar
 
 <div align="center">

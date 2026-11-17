@@ -12,6 +12,8 @@ TaskManagerTextChecks();
 SettingsChecks();
 InitialLanguageChecks();
 ProcessControlChecks();
+SuggestionChecks();
+UpdateFileChecks();
 checks += RunningAppChecks.Run();
 checks += WidgetViewChecks.Run();
 Console.WriteLine($"{checks} behavior checks passed.");
@@ -323,6 +325,85 @@ void ProcessControlChecks()
     }
 }
 
+void SuggestionChecks()
+{
+    var path = Path.Combine(Path.GetTempPath(), $"sugestoes-{Guid.NewGuid():N}.md");
+    var store = new SuggestionStore(path);
+    var at = new DateTime(2026, 11, 17, 2, 10, 0);
+    try
+    {
+        Check(store.Load().Count == 0 && store.ReadAll() == string.Empty, "A missing suggestions file must read as empty.");
+        Check(store.Add("   \n  ", "Ideia", "0.3.2", at) is not null && !File.Exists(path), "An empty suggestion must be refused without creating the file.");
+        Check(store.Add("Barra mais escura", "Ideia", "0.3.2", at) is null, "A suggestion must save.");
+        Check(File.ReadAllText(path) == "# Sugestões\r\n\r\n- [ ] 2026-11-17 02:10 · Ideia · v0.3.2 — Barra mais escura\r\n",
+            "Suggestions must use the documented Markdown line with date, category and version.");
+        var bytes = File.ReadAllBytes(path);
+        Check(bytes is [0xEF, 0xBB, 0xBF, ..], "The suggestions file must be UTF-8 (with BOM so Notepad shows accents).");
+
+        Check(store.Add("Relógio some às vezes\r\n\r\nPassos: abrir # menu — fechar 🙂\n  depois reabrir  ", "Bug", "0.3.2", at.AddMinutes(1)) is null,
+            "Multi-line text with special characters must save.");
+        Check(store.Add("Cor do ponto", "Desconhecida", "0.3.2", at.AddMinutes(2)) is null, "An unknown category must still save.");
+        var items = store.Load();
+        Check(items.Count == 3 && items[1] is { Done: false, Header: "2026-11-17 02:11 · Bug · v0.3.2" }
+            && items[1].Text == "Relógio some às vezes\n.\nPassos: abrir # menu — fechar 🙂\n  depois reabrir"
+            && items[2].Header.Contains("· Ideia ·"),
+            "Multi-line items must round-trip (blank lines kept as '.', indentation kept) and unknown categories become Ideia.");
+
+        Check(store.Toggle(1) is null && store.Load() is [{ Done: false }, { Done: true }, { Done: false }]
+            && File.ReadAllText(path).Contains("- [x] 2026-11-17 02:11 · Bug"), "Marking an item done must write [x] on that item only.");
+        Check(store.Toggle(1) is null && !store.Load()[1].Done, "Toggling again must reopen it.");
+        Check(store.Delete(1) is null && store.Load() is [{ Text: "Barra mais escura" }, { Text: "Cor do ponto" }]
+            && !File.ReadAllText(path).Contains("depois reabrir"), "Deleting a multi-line item must remove all of its lines and nothing else.");
+        Check(store.Toggle(7) is null && store.Delete(-1) is null && store.Load().Count == 2, "Out-of-range edits must change nothing.");
+
+        // Edits made by hand in Notepad (extra text, LF endings) must survive.
+        File.WriteAllText(path, "# Sugestões\n\nMinhas notas soltas\n- [X] 2026-11-01 10:00 · Visual · v0.3.0 — feito à mão\n");
+        Check(store.Load() is [{ Done: true, Text: "feito à mão" }] && store.Toggle(0) is null
+            && File.ReadAllText(path).Contains("Minhas notas soltas") && !store.Load()[0].Done,
+            "Hand-written notes and capital [X] must be kept and understood.");
+    }
+    finally
+    {
+        File.Delete(path);
+        File.Delete(path + ".tmp");
+    }
+}
+
+void UpdateFileChecks()
+{
+    Check(UpdateChecker.ParseChecksum("9A46E9DB6FBC5837E84C0BCAF4531EC8B430A6C8D2243A3B3219433164BC8BA3  OpenTaskbar.exe\r\n")
+          == "9a46e9db6fbc5837e84c0bcaf4531ec8b430a6c8d2243a3b3219433164bc8ba3"
+          && UpdateChecker.ParseChecksum("not a hash") is null && UpdateChecker.ParseChecksum("") is null,
+        "The .sha256 asset must parse to a lowercase hash or nothing.");
+    Check(UpdateChecker.IsNewer(new Version(0, 3, 2, 0), new Version(0, 3, 1)) && !UpdateChecker.IsNewer(new Version(0, 3, 1, 0), new Version(0, 3, 1))
+          && !UpdateChecker.IsNewer(new Version(0, 2, 9), new Version(0, 3, 1)), "Only strictly newer versions may install.");
+    var release = UpdateChecker.ParseRelease("""
+        {"tag_name":"v9.0.0","html_url":"https://example.invalid/r","assets":[
+          {"name":"OpenTaskbar.exe.sha256","browser_download_url":"https://example.invalid/OpenTaskbar.exe.sha256","size":82},
+          {"name":"OpenTaskbar.exe","browser_download_url":"https://example.invalid/OpenTaskbar.exe","size":71000000}]}
+        """, new Version(0, 3, 1));
+    Check(release is { DownloadUrl: "https://example.invalid/OpenTaskbar.exe", ChecksumUrl: "https://example.invalid/OpenTaskbar.exe.sha256", Size: 71000000 },
+        "The checksum asset must be found and must not be mistaken for the executable.");
+
+    var text = Path.Combine(Path.GetTempPath(), $"not-an-exe-{Guid.NewGuid():N}.exe");
+    File.WriteAllText(text, "hello");
+    try
+    {
+        Check(UpdateChecker.ValidateLocalFile(text, new Version(0, 3, 1)).ErrorKey == "UpdateFileInvalid", "A non-executable file must be refused.");
+    }
+    finally
+    {
+        File.Delete(text);
+    }
+
+    Check(UpdateChecker.ValidateLocalFile(Path.Combine(Environment.SystemDirectory, "notepad.exe"), new Version(0, 3, 1)).ErrorKey is "UpdateFileNotOpenTaskbar" or "UpdateFileInvalid",
+        "Another program must never be installed over OpenTaskbar.");
+    var app = typeof(UpdateChecker).Assembly.Location;
+    Check(UpdateChecker.ValidateLocalFile(app, UpdateChecker.CurrentVersion).ErrorKey == "UpdateFileNotNewer"
+          && UpdateChecker.ValidateLocalFile(app, new Version(0, 0, 1)) is { ErrorKey: null, Version: not null },
+        "An OpenTaskbar build must install only when it is newer than the running one.");
+    Check(UpdateChecker.ReleasesPage == "https://github.com/jvsleiman/barra-tarefas/releases/latest", "Downloads must point at this fork's releases.");
+}
 sealed class TestClock : TimeProvider
 {
     private long _timestamp;

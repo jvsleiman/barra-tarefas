@@ -410,16 +410,14 @@ public partial class MainWindow
         }
     }
 
-    private async void CheckUpdates_Click(object sender, RoutedEventArgs e)
-    {
-        if (_availableUpdate is { } release)
-        {
-            await StartUpdateAsync(release);
-            return;
-        }
+    /// <summary>"Procurar atualização": a dialog that checks now and offers update / up to date / manual install.</summary>
+    private void CheckUpdates_Click(object sender, RoutedEventArgs e) => AppDialogs.CheckForUpdate(StartUpdateAsync);
 
-        await CheckForUpdatesAsync(userInitiated: true);
-    }
+    internal void ShowUpdateDialog() => AppDialogs.CheckForUpdate(StartUpdateAsync);
+
+    private readonly SuggestionStore _suggestions = new();
+
+    private void AddSuggestion_Click(object sender, RoutedEventArgs e) => AppDialogs.AddSuggestion(_suggestions, ShowStatus);
 
     // ---- Virtual desktop filter (#7) ----
 

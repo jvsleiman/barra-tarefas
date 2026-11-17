@@ -110,6 +110,14 @@
                                     <TextBlock Text="{local:Loc CheckUpdatesSetting}" Style="{StaticResource SettingsRowLabel}" />
                                     <TextBlock Text="{local:Loc CheckUpdatesDescription}" Style="{StaticResource SettingsRowDescription}" />
                                 </StackPanel>
+                            </DockPanel></Border>
+                            <Border Style="{StaticResource SettingsRow}"><DockPanel>
+                                <Button DockPanel.Dock="Right" Content="{local:Loc UpdateCheckNow}" Style="{StaticResource SettingsButton}"
+                                        VerticalAlignment="Center" Click="CheckUpdateNow_Click" />
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="{local:Loc UpdateCheckNow}" Style="{StaticResource SettingsRowLabel}" />
+                                    <TextBlock Text="{local:Loc UpdateCheckNowDescription}" Style="{StaticResource SettingsRowDescription}" />
+                                </StackPanel>
                             </DockPanel></Border>                            <TextBlock Text="{local:Loc AutoHide}" Style="{StaticResource SettingsSection}" />
                             <TextBlock Text="{local:Loc AutoHideDescription}" Style="{StaticResource SettingsRowDescription}" Margin="0,0,0,10" />
                             <RadioButton x:Name="AutoHideDisabled" GroupName="AutoHide" Content="{local:Loc AutoHideDisabled}" Style="{StaticResource SettingsListChoice}" />
@@ -390,6 +398,11 @@
                                 <TextBlock Text="{local:Loc WheelVolume}" Style="{StaticResource SettingsRowLabel}" ToolTip="{local:Loc WheelVolumeDescription}" />
                             </DockPanel></Border>
                         </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
+            <TabItem x:Name="SuggestionsTab" Header="{local:Loc Suggestions}" Tag="&#xE8BD;">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" CanContentScroll="False">
+                        <StackPanel x:Name="SuggestionsPage" Margin="{StaticResource SettingsPageInset}" MaxWidth="{StaticResource SettingsReadingWidth}" />
                     </ScrollViewer>
                 </TabItem>
             </TabControl>

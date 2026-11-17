@@ -294,6 +294,7 @@ public partial class SettingsWindow : Window
         if (!_initializing && ReferenceEquals(e.Source, SettingsTabs))
         {
             UpdateWidgetPreviewRefresh();
+            if (SuggestionsTab.IsSelected) RenderSuggestions();
             if (_preferences.Current.AnimationsEnabled && SettingsTabs.Template?.FindName("PART_SelectedContentHost", SettingsTabs) is ContentPresenter host)
             {
                 var fade = new System.Windows.Media.Animation.DoubleAnimation(0.4, 1.0, TimeSpan.FromMilliseconds(150))

@@ -42,6 +42,7 @@
             </MenuItem>
             <Separator />
             <MenuItem Header="{local:Loc CheckForUpdates}" Icon="{StaticResource IconRefresh}" Tag="UpdateMenu" Click="CheckUpdates_Click" />
+            <MenuItem Header="{local:Loc SuggestionAdd}" Icon="{StaticResource IconPlus}" Click="AddSuggestion_Click" />
             <MenuItem Header="{local:Loc TaskManager}" Icon="{StaticResource IconTaskManager}" Click="OpenTaskManager_Click" />
             <MenuItem Header="{local:Loc Settings}" Icon="{StaticResource IconSettings}" Click="OpenSettings_Click" />
             <Separator />

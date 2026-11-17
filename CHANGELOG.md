@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2 - 2026-11-17
+
+- **Procurar atualização:** novo botão em Configurações › Geral › "Inicialização e atualizações" e no menu do botão direito da barra. Mostra "Versão X disponível" com "Atualizar agora" (baixa, confere o SHA-256 e reinicia já atualizado) ou "Você já está na versão mais recente".
+- **Repositório privado:** quando não dá para conferir sozinho, aparece "Não consegui verificar automaticamente" com "Abrir página de downloads" e "Instalar de um arquivo…" (escolha o OpenTaskbar.exe baixado; o app confere se é mesmo uma versão mais nova do OpenTaskbar antes de instalar).
+- **Sugestões:** "Adicionar sugestão…" no menu da barra e uma página "Sugestões" nas Configurações. Cada sugestão é salva com data, tipo (Ideia, Bug, Visual) e versão em `%LOCALAPPDATA%\OpenTaskbar\sugestoes.md`, que as atualizações não apagam. Na página dá para marcar como feita, excluir, abrir o arquivo e copiar tudo.
+- Mensagens de erro da atualização que apareciam em turco agora aparecem em português.
 ## 0.3.1 - 2026-11-17
 
 - **Botão Iniciar:** o segundo clique agora fecha o menu Iniciar (antes fechava e abria de novo na hora).
