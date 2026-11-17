@@ -83,4 +83,5 @@
     <SolidColorBrush x:Key="RunningDotBrush" Color="#FF3B82F6" />
     <SolidColorBrush x:Key="WeekdayAccent" Color="#FFEF4444" />
     <SolidColorBrush x:Key="EventAccent" Color="#FFF59E0B" />
+    <SolidColorBrush x:Key="UsageBarBrush" Color="#FF22C55E" />
 </ResourceDictionary>

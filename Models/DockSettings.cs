@@ -112,7 +112,7 @@ public sealed record DockSettings(
     double CornerRadius = 15,
     string WeekdayColor = "",
     string RunningDotColor = "",
-    IReadOnlyList<string>? DeviceFilter = null)
+    IReadOnlyList<string>? AiUsageProviders = null)
 {
     /// <summary>Quick settings items, in display order (Wi-Fi, Bluetooth, Display/cast, Hotspot, Windows panel, notifications).</summary>
     public static readonly IReadOnlyList<string> AllQuickSettingsItems = ["Wifi", "Bluetooth", "Display", "Hotspot", "Panel", "Notifications"];

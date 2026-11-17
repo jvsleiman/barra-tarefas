@@ -27,6 +27,11 @@ public sealed class WidgetCoordinator : IDisposable
         "Audio",
         "QuickSettings",
         "Calendar",
+        "Devices",
+        "NetSpeed",
+        "Disk",
+        "Notes",
+        "AiUsage",
         "Tray",
         "Clock"
     ];
@@ -41,6 +46,11 @@ public sealed class WidgetCoordinator : IDisposable
         "Audio" => "WidgetAudio",
         "QuickSettings" => "WidgetQuickSettings",
         "Calendar" => "WidgetCalendar",
+        "Devices" => "WidgetDevices",
+        "NetSpeed" => "WidgetNetSpeed",
+        "Disk" => "WidgetDisk",
+        "Notes" => "WidgetNotes",
+        "AiUsage" => "WidgetAiUsage",
         "Tray" => "WidgetTray",
         "Clock" => "WidgetClock",
         _ => null
@@ -83,6 +93,11 @@ public sealed class WidgetCoordinator : IDisposable
             new("Audio", "WidgetAudio", new AudioWidget(), s => IsCatalogEnabled(s, "Audio")),
             new("QuickSettings", "WidgetQuickSettings", new QuickSettingsWidget(), s => IsCatalogEnabled(s, "QuickSettings")),
             new("Calendar", "WidgetCalendar", new CalendarWidget(), s => IsCatalogEnabled(s, "Calendar")),
+            new("Devices", "WidgetDevices", new WirelessDevicesWidget(), s => IsCatalogEnabled(s, "Devices")),
+            new("NetSpeed", "WidgetNetSpeed", new NetworkSpeedWidget(), s => IsCatalogEnabled(s, "NetSpeed")),
+            new("Disk", "WidgetDisk", new DiskUsageWidget(), s => IsCatalogEnabled(s, "Disk")),
+            new("Notes", "WidgetNotes", new QuickNotesWidget(), s => IsCatalogEnabled(s, "Notes")),
+            new("AiUsage", "WidgetAiUsage", new AiUsageWidget(), s => IsCatalogEnabled(s, "AiUsage")),
             new("Tray", "WidgetTray", tray, s => IsCatalogEnabled(s, "Tray")),
             new("Clock", "WidgetClock", new ClockWidget(), s => IsCatalogEnabled(s, "Clock") || IsCatalogEnabled(s, "Date"))
         ];

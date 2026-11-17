@@ -158,6 +158,7 @@ public sealed class DockSettingsStore
             || group.Apps.Any(string.IsNullOrWhiteSpace) || !IsColorOrEmpty(group.Color)) != true
         && settings.QuickSettingsItems?.Any(item => !DockSettings.AllQuickSettingsItems.Contains(item)) != true
         && settings.QuickSettingsItems?.Distinct(StringComparer.Ordinal).Count() == settings.QuickSettingsItems?.Count
+        && settings.AiUsageProviders?.Any(provider => !AiUsage.Providers.Contains(provider)) != true
         && Enum.IsDefined(settings.IndicatorStyle) && Enum.IsDefined(settings.StartIcon)
         && settings.StartIconPath is { Length: <= 400 }
         && double.IsFinite(settings.StartIconScale) && settings.StartIconScale is >= 0.6 and <= 1.6

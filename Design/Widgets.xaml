@@ -33,7 +33,17 @@
     <StreamGeometry x:Key="IconChevronNext">M9 18l6-6-6-6</StreamGeometry>
     <StreamGeometry x:Key="IconChevronUp">M18 15l-6-6-6 6</StreamGeometry>
     <StreamGeometry x:Key="IconDesktops">M3 4h12a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z M20 8h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-1</StreamGeometry>
-    <StreamGeometry x:Key="IconMusic">M9 18V5l12-2v13 M9 18a3 3 0 1 1-6 0a3 3 0 0 1 6 0z M21 16a3 3 0 1 1-6 0a3 3 0 0 1 6 0z</StreamGeometry>
+    <!-- 0.4.0 widgets (Lucide outlines, 24x24) -->
+    <StreamGeometry x:Key="IconHeadphones">M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3</StreamGeometry>
+    <StreamGeometry x:Key="IconMouse">M12 2a6 6 0 0 0-6 6v8a6 6 0 0 0 12 0V8a6 6 0 0 0-6-6z M12 6v4</StreamGeometry>
+    <StreamGeometry x:Key="IconKeyboard">M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z M6 10h.01 M10 10h.01 M14 10h.01 M18 10h.01 M8 14h8</StreamGeometry>
+    <StreamGeometry x:Key="IconGamepad">M6 12h4 M8 10v4 M15 13h.01 M18 11h.01 M17.32 5H6.68a4 4 0 0 0-3.978 3.59l-.9 7.5A3 3 0 0 0 4.8 19.5c1.1 0 2.1-.6 2.6-1.6L8.5 16h7l1.1 1.9c.5 1 1.5 1.6 2.6 1.6a3 3 0 0 0 2.98-3.41l-.9-7.5A4 4 0 0 0 17.32 5z</StreamGeometry>
+    <StreamGeometry x:Key="IconPhone">M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z M12 18h.01</StreamGeometry>
+    <StreamGeometry x:Key="IconArrowDown">M12 5v14 M19 12l-7 7-7-7</StreamGeometry>
+    <StreamGeometry x:Key="IconArrowUp">M12 19V5 M5 12l7-7 7 7</StreamGeometry>
+    <StreamGeometry x:Key="IconHardDrive">M22 12H2 M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z M6 16h.01 M10 16h.01</StreamGeometry>
+    <StreamGeometry x:Key="IconNote">M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8.5L15.5 3z M15 3v6h6 M7 13h10 M7 17h6</StreamGeometry>
+    <StreamGeometry x:Key="IconSparkles">M12 3l1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2z M19 3v4 M21 5h-4</StreamGeometry>    <StreamGeometry x:Key="IconMusic">M9 18V5l12-2v13 M9 18a3 3 0 1 1-6 0a3 3 0 0 1 6 0z M21 16a3 3 0 1 1-6 0a3 3 0 0 1 6 0z</StreamGeometry>
 
     <Style x:Key="WidgetIcon" TargetType="ContentControl">
         <Setter Property="Width" Value="16" />
