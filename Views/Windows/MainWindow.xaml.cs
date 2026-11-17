@@ -1317,50 +1317,10 @@ public partial class MainWindow : Window
 
     private void CloseApplication(string executablePath)
     {
-        var (processes, inaccessibleCount) = FindProcessesForExecutable(executablePath);
-        var closedCount = 0;
-        var failedCount = inaccessibleCount;
-        foreach (var process in processes)
-        {
-            try
-            {
-                if (process.CloseMainWindow())
-                {
-                    closedCount++;
-                }
-                else
-                {
-                    failedCount++;
-                }
-            }
-            catch (InvalidOperationException)
-            {
-                // The process exited while the menu command was running.
-            }
-            catch (Win32Exception)
-            {
-                failedCount++;
-            }
-            finally
-            {
-                process.Dispose();
-            }
-        }
-
-        if (closedCount > 0 && failedCount == 0)
-        {
-            ClearStatus();
-        }
-        else if (closedCount == 0)
-        {
-            ShowStatus(UiText.Get("ErrorAppGracefulClose"));
-        }
-        else
-        {
-            ShowStatus(UiText.Get("ErrorAppPartialGracefulClose"));
-        }
+        // WM_CLOSE to all of the app's windows (tray apps included); CloseMainWindow missed apps without a main window.
+        if (AppProcessControl.CloseWindows(executablePath) > 0) ClearStatus();
+        else ShowStatus(UiText.Get("ErrorAppGracefulClose"));
     }
-
     private void TerminateDockApp_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not MenuItem { CommandParameter: string executablePath })
@@ -1373,73 +1333,37 @@ public partial class MainWindow : Window
 
     private void TerminateApplication(string executablePath)
     {
-        var (processes, inaccessibleCount) = FindProcessesForExecutable(executablePath);
-        if (processes.Count == 0)
-        {
-            ShowStatus(inaccessibleCount == 0
-                ? UiText.Get("ErrorAppNoProcesses")
-                : UiText.Get("ErrorAppProcessesInaccessible"));
-            return;
-        }
-
         var appName = _pinnedApps.FirstOrDefault(app =>
             string.Equals(app.ExecutablePath, executablePath, StringComparison.OrdinalIgnoreCase))?.Name
             ?? Path.GetFileNameWithoutExtension(executablePath);
+        if (AppProcessControl.IsProtected(executablePath))
+        {
+            ShowStatus(UiText.Get("ErrorAppProtected"));
+            return;
+        }
+
+        var processes = AppProcessControl.FindProcesses(executablePath);
+        var count = processes.Count;
+        DisposeProcesses(processes);
+        if (count == 0)
+        {
+            ShowStatus(UiText.Get("ErrorAppNoProcesses"));
+            return;
+        }
+
         var confirmation = MessageBox.Show(
-            UiText.Format("TerminatePrompt", appName, processes.Count),
+            UiText.Format("TerminatePrompt", appName, count),
             UiText.Get("TerminateTitle"),
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning,
             MessageBoxResult.No);
-        if (confirmation != MessageBoxResult.Yes)
-        {
-            DisposeProcesses(processes);
-            return;
-        }
+        if (confirmation != MessageBoxResult.Yes) return;
 
-        var terminatedCount = 0;
-        var failedCount = inaccessibleCount;
-        foreach (var process in processes)
-        {
-            try
-            {
-                if (process.Id == Environment.ProcessId)
-                {
-                    failedCount++;
-                    continue;
-                }
-
-                process.Kill(entireProcessTree: true);
-                terminatedCount++;
-            }
-            catch (InvalidOperationException)
-            {
-                // The process exited while the menu command was running.
-            }
-            catch (Win32Exception)
-            {
-                failedCount++;
-            }
-            finally
-            {
-                process.Dispose();
-            }
-        }
-
-        if (failedCount == 0 && terminatedCount > 0)
-        {
-            ClearStatus();
-        }
-        else if (terminatedCount == 0)
-        {
-            ShowStatus(UiText.Get("ErrorAppTerminateFailed"));
-        }
-        else
-        {
-            ShowStatus(UiText.Get("ErrorAppPartialTerminate"));
-        }
+        var result = AppProcessControl.Terminate(executablePath);
+        if (result.MessageKey is null) ClearStatus();
+        else ShowStatus(result.MessageKey == "AppStillRunning" ? UiText.Format("AppStillRunning", appName) : UiText.Get(result.MessageKey));
+        if (_windowTracker is not null) UpdateRunningApps(VisibleSnapshot);
     }
-
     private void OpenSettings_Click(object sender, RoutedEventArgs e)
     {
         _widgetPanel.Close(restoreFocus: false);
@@ -1603,38 +1527,6 @@ public partial class MainWindow : Window
             item.CommandParameter = executablePath;
             SetMenuCommandParameter(item, executablePath);
         }
-    }
-
-    private static (List<Process> Processes, int InaccessibleCount) FindProcessesForExecutable(string executablePath)
-    {
-        var matchingProcesses = new List<Process>();
-        var inaccessibleCount = 0;
-        var processName = Path.GetFileNameWithoutExtension(executablePath);
-        foreach (var process in Process.GetProcessesByName(processName))
-        {
-            try
-            {
-                if (string.Equals(process.MainModule?.FileName, executablePath, StringComparison.OrdinalIgnoreCase))
-                {
-                    matchingProcesses.Add(process);
-                }
-                else
-                {
-                    process.Dispose();
-                }
-            }
-            catch (Win32Exception)
-            {
-                inaccessibleCount++;
-                process.Dispose();
-            }
-            catch (InvalidOperationException)
-            {
-                process.Dispose();
-            }
-        }
-
-        return (matchingProcesses, inaccessibleCount);
     }
 
     private static void DisposeProcesses(IEnumerable<Process> processes)

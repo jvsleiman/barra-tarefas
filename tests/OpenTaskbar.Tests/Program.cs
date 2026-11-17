@@ -11,6 +11,7 @@ LocalizationChecks();
 TaskManagerTextChecks();
 SettingsChecks();
 InitialLanguageChecks();
+ProcessControlChecks();
 checks += RunningAppChecks.Run();
 checks += WidgetViewChecks.Run();
 Console.WriteLine($"{checks} behavior checks passed.");
@@ -275,6 +276,53 @@ void InitialLanguageChecks()
     }
 }
 
+void ProcessControlChecks()
+{
+    // Never end the shell or Windows core processes, nor the dock itself.
+    Check(AppProcessControl.IsProtected(@"C:\Windows\explorer.exe") && AppProcessControl.IsProtected(@"C:\Windows\System32\svchost.exe")
+        && AppProcessControl.IsProtected(@"F:\x\OpenTaskbar.exe") && !AppProcessControl.IsProtected(@"C:\Program Files\Discord\Discord.exe"),
+        "Critical Windows processes and the dock itself must be protected from End task.");
+    Check(AppProcessControl.Terminate(@"C:\Windows\explorer.exe").MessageKey == "ErrorAppProtected", "Ending explorer must be refused with a message.");
+    Check(new TerminateResult(2, 0, 0, 0, 0).MessageKey is null
+        && new TerminateResult(1, 1, 0, 0, 0).MessageKey == "ErrorAppElevated"
+        && new TerminateResult(0, 0, 1, 0, 0).MessageKey == "ErrorAppIsService"
+        && new TerminateResult(1, 0, 0, 0, 1).MessageKey == "AppStillRunning"
+        && new TerminateResult(0, 0, 0, 0, 0).MessageKey == "ErrorAppNoProcesses",
+        "End task outcomes must map to one clear message each.");
+    using (var self = System.Diagnostics.Process.GetCurrentProcess())
+        Check(string.Equals(AppProcessControl.GetImagePath(self.Id), self.MainModule?.FileName, StringComparison.OrdinalIgnoreCase),
+            "Process paths must resolve without MainModule (works for elevated processes too).");
+
+    // End task kills every process of the app: a uniquely named copy of ping.exe stands in for a background app.
+    var directory = Path.Combine(Path.GetTempPath(), "OpenTaskbarProcessChecks");
+    Directory.CreateDirectory(directory);
+    var executable = Path.Combine(directory, $"ot-bg-{Guid.NewGuid():N}.exe");
+    File.Copy(Path.Combine(Environment.SystemDirectory, "PING.EXE"), executable);
+    var started = Enumerable.Range(0, 2).Select(_ => System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(executable, "-n 60 127.0.0.1")
+    {
+        CreateNoWindow = true, UseShellExecute = false
+    })!).ToList();
+    try
+    {
+        Check(AppProcessControl.FindProcesses(executable) is { Count: 2 } found && found.All(process => { process.Dispose(); return true; }),
+            "All processes started from the app's executable must be found.");
+        var result = AppProcessControl.Terminate(executable);
+        Check(result is { Ended: 2, StillRunning: 0 } && result.MessageKey is null && started.All(process => process.HasExited),
+            "End task must end every process of the app and confirm nothing is left running.");
+    }
+    finally
+    {
+        foreach (var process in started)
+        {
+            if (!process.HasExited) process.Kill(entireProcessTree: true);
+            process.WaitForExit(2000);
+            process.Dispose();
+        }
+
+        File.Delete(executable);
+    }
+}
+
 sealed class TestClock : TimeProvider
 {
     private long _timestamp;
@@ -282,3 +330,4 @@ sealed class TestClock : TimeProvider
     public override long GetTimestamp() => _timestamp;
     public void Advance(TimeSpan elapsed) => _timestamp += elapsed.Ticks;
 }
+

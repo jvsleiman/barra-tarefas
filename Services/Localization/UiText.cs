@@ -11,6 +11,10 @@ public sealed partial class UiText : INotifyPropertyChanged
         new Dictionary<string, (string, string)>
         {
             ["Settings"] = ("Ayarlar", "Settings"),
+            ["ErrorAppElevated"] = ("Bu uygulama yönetici olarak çalışıyor; sonlandırılamadı.", "This app runs as administrator; it could not be ended."),
+            ["ErrorAppIsService"] = ("Bu bir Windows hizmeti; buradan sonlandırılmaz.", "This is a Windows service; it is not ended from here."),
+            ["ErrorAppProtected"] = ("Bu temel bir Windows işlemi ve sonlandırılamaz.", "This is an essential Windows process and cannot be ended."),
+            ["AppStillRunning"] = ("{0} hâlâ çalışıyor.", "{0} is still running."),
             ["WidgetCalendar"] = ("Takvim", "Calendar"),
             ["WidgetCalendarDescription"] = ("Gün, tarih ve sıradaki etkinlik.", "Day, date and your next event."),
             ["NoEvents"] = ("Etkinlik yok", "No events"),

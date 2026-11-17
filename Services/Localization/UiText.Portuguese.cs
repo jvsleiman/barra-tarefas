@@ -9,6 +9,10 @@ public sealed partial class UiText
     private static readonly IReadOnlyDictionary<string, string> Portuguese = new Dictionary<string, string>
     {
         ["Settings"] = "Configurações",
+        ["ErrorAppElevated"] = "Este app roda como administrador; não foi possível encerrar.",
+        ["ErrorAppIsService"] = "Isto é um serviço do Windows; ele não é encerrado por aqui.",
+        ["ErrorAppProtected"] = "Este é um processo essencial do Windows e não pode ser encerrado.",
+        ["AppStillRunning"] = "{0} ainda está em execução.",
         ["WidgetCalendar"] = "Calendário",
         ["WidgetCalendarDescription"] = "Dia, data e o seu próximo compromisso.",
         ["NoEvents"] = "Sem eventos",
