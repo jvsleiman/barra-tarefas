@@ -167,13 +167,14 @@ public partial class MediaWidget : DockWidget
         try
         {
             var timeline = _session.GetTimelineProperties();
+            if (timeline is null) return;
             _startTime = timeline.StartTime;
             _endTime = timeline.EndTime;
             _position = timeline.Position;
             _positionUpdatedAt = timeline.LastUpdatedTime;
             if (!_draggingProgress) UpdateProgressUI();
         }
-        catch (Exception ex) when (ex is COMException or InvalidOperationException)
+        catch (Exception ex) when (ex is COMException or InvalidOperationException or NullReferenceException)
         {
             AppLog.Warning($"Media timeline refresh failed: {ex.Message}");
         }
@@ -226,13 +227,14 @@ public partial class MediaWidget : DockWidget
         try
         {
             var playback = session.GetPlaybackInfo();
-            var controls = playback.Controls;
-            _playing = playback.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
-            _canSeek = controls.IsPlaybackPositionEnabled;
+            // Some players publish a session before (or after) their playback info/controls exist.
+            var controls = playback?.Controls;
+            _playing = playback?.PlaybackStatus == GlobalSystemMediaTransportControlsSessionPlaybackStatus.Playing;
+            _canSeek = controls?.IsPlaybackPositionEnabled == true;
             PlayPauseGlyph.Content = FindResource(_playing ? "IconPauseFill" : "IconPlayFill");
-            PlayPauseButton.IsEnabled = controls.IsPlayPauseToggleEnabled || controls.IsPlayEnabled || controls.IsPauseEnabled;
-            PreviousButton.IsEnabled = controls.IsPreviousEnabled;
-            NextButton.IsEnabled = controls.IsNextEnabled;
+            PlayPauseButton.IsEnabled = controls is not null && (controls.IsPlayPauseToggleEnabled || controls.IsPlayEnabled || controls.IsPauseEnabled);
+            PreviousButton.IsEnabled = controls?.IsPreviousEnabled == true;
+            NextButton.IsEnabled = controls?.IsNextEnabled == true;
             RefreshTimeline();
             if (!includeProperties) return;
 
@@ -251,7 +253,7 @@ public partial class MediaWidget : DockWidget
             HasData = true;
             await LoadArtAsync(properties, version);
         }
-        catch (Exception ex) when (ex is COMException or InvalidOperationException)
+        catch (Exception ex) when (ex is COMException or InvalidOperationException or NullReferenceException)
         {
             // Sessions vanish while their owning app exits; the next CurrentSessionChanged rebinds.
             AppLog.Warning($"Media session refresh failed: {ex.Message}");
@@ -287,7 +289,7 @@ public partial class MediaWidget : DockWidget
             ArtPlaceholder.Visibility = Visibility.Collapsed;
             _artKey = key;
         }
-        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or IOException or NotSupportedException or FileFormatException)
+        catch (Exception ex) when (ex is COMException or IOException or NotSupportedException or FileFormatException or NullReferenceException)
         {
             AppLog.Warning($"Media artwork unavailable: {ex.Message}");
         }
@@ -349,7 +351,7 @@ public partial class MediaWidget : DockWidget
         {
             if (!await command(_session)) Report("Medya oturumu kontrol edilemedi.");
         }
-        catch (System.Runtime.InteropServices.COMException ex)
+        catch (Exception ex) when (ex is COMException or InvalidOperationException or NullReferenceException)
         {
             AppLog.Warning($"Media command failed: {ex.Message}");
             Report("Medya oturumu kontrol edilemedi.");
