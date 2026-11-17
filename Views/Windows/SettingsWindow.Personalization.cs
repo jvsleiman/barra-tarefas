@@ -149,22 +149,15 @@ public partial class SettingsWindow
         {
             var position = shown.IndexOf(id);
             BarPage.Children.Add(ListRow(UiText.Get(OpenTaskbar.Widgets.WidgetCoordinator.GetLabelKey(id) ?? id), true,
-                on => SetWidgetEnabled(id, on),
-                position > 0 ? () => SetBlockOrder(blockOrder, id, shown[position - 1]) : null,
-                position < shown.Count - 1 ? () => SetBlockOrder(blockOrder, id, shown[position + 1]) : null));
+                null,
+                position > 0 ? (Action)(() => SetBlockOrder(blockOrder, id, shown[position - 1])) : null,
+                position < shown.Count - 1 ? (Action)(() => SetBlockOrder(blockOrder, id, shown[position + 1])) : null));
         }
         BarPage.Children.Add(Section("SectionQuickSettings", "QuickSettingsItemsDescription"));
         var chosen = Current.EffectiveQuickSettingsItems.ToList();
-        var order = chosen.Concat(DockSettings.AllQuickSettingsItems.Where(item => !chosen.Contains(item))).ToList();
-        foreach (var item in order)
-        {
-            var isOn = chosen.Contains(item);
-            BarPage.Children.Add(ListRow(QuickSettingsLabel(item), isOn,
-                on => SetQuickSettings(on ? chosen.Append(item).ToList() : chosen.Where(id => id != item).ToList()),
-                isOn && chosen.IndexOf(item) > 0 ? () => SetQuickSettings(Move(chosen, item, -1)) : null,
-                isOn && chosen.IndexOf(item) < chosen.Count - 1 ? () => SetQuickSettings(Move(chosen, item, 1)) : null));
-        }
-
+        BarPage.Children.Add(Chips(chosen.Concat(DockSettings.AllQuickSettingsItems.Where(item => !chosen.Contains(item)))
+            .Select(item => (QuickSettingsLabel(item), chosen.Contains(item), (Action<bool>)(on =>
+                SetQuickSettings(on ? chosen.Append(item).ToList() : chosen.Where(id => id != item).ToList()))))));
         BarPage.Children.Add(SwitchRow("QuickSettingsCompact", "QuickSettingsCompactDescription", Current.QuickSettingsCompact, on => Current with { QuickSettingsCompact = on }));
 
         BarPage.Children.Add(Section("SectionFolders", "FoldersDescription"));
@@ -175,17 +168,16 @@ public partial class SettingsWindow
 
         BarPage.Children.Add(Section("SectionAiUsage", "AiUsageProvidersDescription"));
         var providers = Current.AiUsageProviders ?? AiUsage.DefaultProviders;
-        foreach (var provider in AiUsage.Providers)
-        {
-            BarPage.Children.Add(ListRow(provider switch { AiUsage.Codex => "Codex (ChatGPT)", AiUsage.Claude => "Claude Code", _ => provider + " · " + UiText.Get("NoUsageData") }, providers.Contains(provider), on =>
+        BarPage.Children.Add(Chips(AiUsage.Providers.Select(provider => (
+            provider switch { AiUsage.Codex => "Codex (ChatGPT)", AiUsage.Claude => "Claude Code", _ => provider },
+            providers.Contains(provider),
+            (Action<bool>)(on =>
             {
                 var next = AiUsage.Providers.Where(p => p == provider ? on : providers.Contains(p)).ToList();
                 SavePersonal(settings => settings with { AiUsageProviders = next });
                 RenderBarPage();
-            }, null, null));
-        }
+            })))));
     }
-
     /// <summary>Swaps two cards in the saved order (neighbours among the visible ones may be far apart in the full list).</summary>
     private void SetBlockOrder(IReadOnlyList<string> order, string id, string other)
     {
@@ -195,16 +187,6 @@ public partial class SettingsWindow
         if (a < 0 || b < 0) return;
         (list[a], list[b]) = (list[b], list[a]);
         SavePersonal(settings => settings with { WidgetOrder = list });
-        RenderBarPage();
-    }
-
-    private void SetWidgetEnabled(string id, bool on)
-    {
-        SavePersonal(settings => settings with
-        {
-            Widgets = on ? (settings.Widgets ?? []).Append(id).Distinct().ToList() : (settings.Widgets ?? []).Where(w => w != id).ToList(),
-            InstalledWidgets = (settings.InstalledWidgets ?? []).Append(id).Distinct().ToList()
-        });
         RenderBarPage();
     }
 
@@ -285,14 +267,29 @@ public partial class SettingsWindow
         return new Border { Style = (Style)FindResource("SettingsRow"), Child = row };
     }
 
-    private Border ListRow(string label, bool value, Action<bool> toggled, Action? up, Action? down)
+    /// <summary>A wrap of selectable chips: one click turns an item on or off, without a row of switches.</summary>
+    private WrapPanel Chips(IEnumerable<(string Label, bool On, Action<bool> Toggle)> items)
+    {
+        var panel = new WrapPanel { Margin = new Thickness(0, 6, 0, 6) };
+        foreach (var (label, on, toggle) in items)
+        {
+            var chip = new ToggleButton { Content = label, IsChecked = on, Tag = PersonalTag, Style = (Style)FindResource("SettingsChip") };
+            System.Windows.Automation.AutomationProperties.SetName(chip, label);
+            chip.Click += (_, _) => toggle(chip.IsChecked == true);
+            panel.Children.Add(chip);
+        }
+
+        return panel;
+    }
+
+    private Border ListRow(string label, bool value, Action<bool>? toggled, Action? up, Action? down)
     {
         var toggle = new CheckBox { IsChecked = value, Tag = PersonalTag, VerticalAlignment = VerticalAlignment.Center, Style = (Style)FindResource("SettingsSwitch") };
         System.Windows.Automation.AutomationProperties.SetName(toggle, label);
-        toggle.Click += (_, _) => toggled(toggle.IsChecked == true);
+        toggle.Click += (_, _) => toggled?.Invoke(toggle.IsChecked == true);
         var row = new DockPanel();
         DockPanel.SetDock(toggle, Dock.Right);
-        row.Children.Add(toggle);
+        if (toggled is not null) row.Children.Add(toggle);
         foreach (var (glyph, key, action) in new[] { ("", "MoveUp", up), ("", "MoveDown", down) })
         {
             if (action is null) continue;

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2 - 2026-11-17
+
+- **Configurações mais limpas:** os interruptores grandes de liga/desliga viraram uma marcação pequena e discreta, e as linhas perderam as divisórias.
+- **Chips em vez de listas de interruptores:** os itens das configurações rápidas e os serviços do card de IA agora são chips que acendem quando estão ativos.
+- **Ordem dos blocos:** a lista mostra só as setas ↑/↓; os cards continuam sendo ligados e desligados na página Widgets.
 ## 0.4.1 - 2026-11-17
 
 - **Dispositivos sem fio:** a busca agora usa a lista de dispositivos Bluetooth pareados e conectados do Windows, e um dispositivo com erro não esconde mais os outros. O card não some quando nada está conectado: mostra "Nenhum dispositivo" (antes parecia que o widget não tinha sido adicionado).

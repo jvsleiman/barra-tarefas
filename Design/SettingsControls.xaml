@@ -149,8 +149,7 @@
     <Style x:Key="SettingsRow" TargetType="Border">
         <Setter Property="MinHeight" Value="52" />
         <Setter Property="Padding" Value="{StaticResource SettingsRowInset}" />
-        <Setter Property="BorderThickness" Value="0,0,0,1" />
-        <Setter Property="BorderBrush" Value="{DynamicResource MenuDivider}" />
+        <Setter Property="BorderThickness" Value="0" />
     </Style>
     <Style x:Key="CompactSettingsRow" TargetType="Border">
         <Setter Property="MinHeight" Value="36" />
@@ -218,6 +217,7 @@
         <Setter Property="Padding" Value="12,6" />
         <Setter Property="Background" Value="{DynamicResource SurfaceSelected}" />
     </Style>
+    <!-- Minimal on/off: a small rounded check instead of a big pill switch, so long settings pages stay calm. -->
     <Style x:Key="SettingsSwitch" TargetType="CheckBox">
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Margin" Value="16,0,0,0" />
@@ -226,22 +226,48 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <Grid Width="48" Height="30">
-                    <Border x:Name="FocusRing" CornerRadius="15" BorderBrush="Transparent" BorderThickness="1" />
-                    <Border x:Name="Track" Width="42" Height="24" CornerRadius="12" Background="{DynamicResource SettingsControlHover}"
-                            BorderBrush="{DynamicResource TextSecondary}" BorderThickness="1" Padding="3">
-                        <Ellipse x:Name="Thumb" Width="16" Height="16" Fill="{DynamicResource TextSecondary}" HorizontalAlignment="Left" />
+                    <Border x:Name="Box" Width="22" Height="22" CornerRadius="6" Background="Transparent"
+                            BorderBrush="{DynamicResource StrokeSubtle}" BorderThickness="1.5">
+                        <Path x:Name="Mark" Data="M5,11 L9,15 L17,7" Stroke="{DynamicResource AccentText}" StrokeThickness="2.2"
+                              StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                              Width="22" Height="22" Margin="-1.5" Visibility="Collapsed" />
                     </Border>
-                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="Track" Property="Background" Value="{DynamicResource AccentBrush}" />
-                            <Setter TargetName="Track" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
-                            <Setter TargetName="Thumb" Property="Fill" Value="{DynamicResource AccentText}" />
-                            <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right" />
+                            <Setter TargetName="Box" Property="Background" Value="{DynamicResource AccentBrush}" />
+                            <Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            <Setter TargetName="Mark" Property="Visibility" Value="Visible" />
                         </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="FocusRing" Property="BorderBrush" Value="{DynamicResource StrokeFocus}" /></Trigger>
-                        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Track" Property="Opacity" Value="0.4" /></Trigger>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource TextSecondary}" /></Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Box" Property="BorderBrush" Value="{DynamicResource StrokeFocus}" /></Trigger>
+                        <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Box" Property="Opacity" Value="0.4" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <!-- Selectable chip: highlights when active; used for groups of on/off items (quick settings, AI services). -->
+    <Style x:Key="SettingsChip" TargetType="ToggleButton">
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Margin" Value="0,0,8,8" />
+        <Setter Property="Padding" Value="14,7" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondary}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Chip" CornerRadius="16" Padding="{TemplateBinding Padding}" Background="{DynamicResource SettingsControl}"
+                            BorderBrush="Transparent" BorderThickness="1.5">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Chip" Property="Background" Value="{DynamicResource SettingsControlHover}" /></Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Chip" Property="Background" Value="{DynamicResource SurfaceSelectedStrong}" />
+                            <Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True"><Setter TargetName="Chip" Property="BorderBrush" Value="{DynamicResource StrokeFocus}" /></Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
