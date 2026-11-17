@@ -5,7 +5,7 @@ using OpenTaskbar.Models;
 
 namespace OpenTaskbar.Services;
 
-public sealed class UiText : INotifyPropertyChanged
+public sealed partial class UiText : INotifyPropertyChanged
 {
     private static readonly IReadOnlyDictionary<string, (string Turkish, string English)> Entries =
         new Dictionary<string, (string, string)>
@@ -466,25 +466,34 @@ public sealed class UiText : INotifyPropertyChanged
         get
         {
             var entry = Entries[key];
-            return _language == AppLanguage.English ? entry.English : entry.Turkish;
+            return _language switch
+            {
+                AppLanguage.English => entry.English,
+                AppLanguage.Portuguese => Portuguese.TryGetValue(key, out var portuguese) ? portuguese : entry.English,
+                _ => entry.Turkish
+            };
         }
     }
     public static string Get(string key) => Current[key];
     public static System.Globalization.CultureInfo CultureFor(AppLanguage language) =>
-        System.Globalization.CultureInfo.GetCultureInfo(language == AppLanguage.English ? "en-US" : "tr-TR");
-    public static string Format(string key, params object[] values) => string.Format(
-        System.Globalization.CultureInfo.GetCultureInfo(Current._language == AppLanguage.English ? "en-US" : "tr-TR"), Get(key), values);
+        System.Globalization.CultureInfo.GetCultureInfo(language switch
+        {
+            AppLanguage.English => "en-US",
+            AppLanguage.Portuguese => "pt-BR",
+            _ => "tr-TR"
+        });
+    public static string Format(string key, params object[] values) => string.Format(CultureFor(Current._language), Get(key), values);
 
     // Look up translated message from Entries or preserve externally supplied errors using ErrorTranslations fallback.
     public static string LocalizeError(string message)
     {
-        if (Entries.TryGetValue(message, out var entry))
+        if (Entries.TryGetValue(message, out _))
         {
-            return Current._language == AppLanguage.English ? entry.English : entry.Turkish;
+            return Current[message];
         }
 
-        return Current._language == AppLanguage.English
-            && ErrorTranslations.TryGetValue(message, out var translated) ? translated : message;
+        if (Current._language == AppLanguage.Turkish || !ErrorTranslations.TryGetValue(message, out var english)) return message;
+        return Current._language == AppLanguage.Portuguese && PortugueseErrors.TryGetValue(english, out var portuguese) ? portuguese : english;
     }
     public void SetLanguage(AppLanguage language)
     {

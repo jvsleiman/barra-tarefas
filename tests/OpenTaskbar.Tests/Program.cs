@@ -237,6 +237,23 @@ void InitialLanguageChecks()
         Check(turkish.Load() is { Error: null, Settings.Language: AppLanguage.Turkish }, "First launch must follow Turkish system UI language.");
         Check(english.Load() is { Error: null, Settings.Language: AppLanguage.English }, "First launch must follow English system UI language.");
         Check(german.Load() is { Error: null, Settings.Language: AppLanguage.English }, "Unsupported system languages must use the documented English default.");
+        var portuguese = new DockSettingsStore(path, CultureInfo.GetCultureInfo("pt-BR"));
+        Check(portuguese.Load() is { Error: null, Settings.Language: AppLanguage.Portuguese }, "First launch must follow a Portuguese system UI language.");
+        Check(new DockSettingsStore(path, CultureInfo.GetCultureInfo("pt-PT")).Load() is { Settings.Language: AppLanguage.Portuguese },
+            "Any Portuguese Windows must start in Portuguese.");
+        Check(UiText.MissingPortugueseKeys().Count == 0, "Every UI text needs pt-BR: " + string.Join(", ", UiText.MissingPortugueseKeys()));
+        Check(UiText.StalePortugueseKeys().Count == 0, "pt-BR has keys missing from the main table: " + string.Join(", ", UiText.StalePortugueseKeys()));
+        Check(UiText.MissingPortugueseErrors().Count == 0, "Every error message needs pt-BR: " + string.Join(" | ", UiText.MissingPortugueseErrors()));
+        var previousLanguage = UiText.Current.Language;
+        UiText.Current.SetLanguage(AppLanguage.Portuguese);
+        Check(UiText.Get("Settings") == "Configurações" && UiText.Get("NoEvents") == "Sem eventos"
+            && UiText.LocalizeError("Ses düzeyi değiştirilemedi.") == "Não foi possível mudar o volume."
+            && UiText.Format("DesktopState", 1, 2) == "Área de trabalho 1 de 2",
+            "Portuguese must translate texts, Turkish-source errors and formatted strings.");
+        Check(UiText.CultureFor(AppLanguage.Portuguese).Name == "pt-BR"
+            && DateTime.Parse("2026-11-17").ToString("dddd", UiText.CultureFor(AppLanguage.Portuguese)).ToUpper() == "TERÇA-FEIRA",
+            "Portuguese dates must use pt-BR (TERÇA-FEIRA).");
+        UiText.Current.SetLanguage(previousLanguage);
         File.WriteAllText(path, "{}");
         Check(turkish.Load() is { Error: null, Settings.Language: AppLanguage.Turkish }, "A legacy file without a language must follow Turkish system UI language.");
         Check(english.Load() is { Error: null, Settings.Language: AppLanguage.English }, "A legacy file without a language must follow English system UI language.");

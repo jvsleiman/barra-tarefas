@@ -149,7 +149,8 @@ public sealed class LauncherWindow : Window
     private void UpdateResults()
     {
         _hint.Visibility = _query.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
-        var english = UiText.Current.IsEnglish;
+        // Portuguese uses the English Windows-settings names (the catalog has Turkish and English only).
+        var english = UiText.Current.Language != AppLanguage.Turkish;
         var results = Catalog.Search(_query.Text, english, ResultLimit);
         _results.ItemsSource = results.Select(entry => new ListBoxItem { Content = BuildRow(entry), Tag = entry }).ToList();
         _results.SelectedIndex = results.Count > 0 ? 0 : -1;

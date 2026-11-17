@@ -8,7 +8,7 @@ public enum DockPosition
 }
 
 public enum AppTheme { Dark, Light }
-public enum AppLanguage { Turkish, English }
+public enum AppLanguage { Turkish, English, Portuguese }
 public enum AutoHideMode { Disabled, Smart, Always }
 public enum DockLayout { Floating, FullWidth }
 public enum DockSize { Compact, Medium, Large }

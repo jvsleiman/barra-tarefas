@@ -68,7 +68,7 @@ protected override void OnDeactivated()
         _weatherLoad = load;
         try
         {
-            var (report, _) = await WeatherService.LoadAsync(Settings.WeatherCity, Settings.Language == AppLanguage.English, load.Token);
+            var (report, _) = await WeatherService.LoadAsync(Settings.WeatherCity, Settings.Language != AppLanguage.Turkish, load.Token);
             if (!IsActive || load.IsCancellationRequested || key != _weatherKey || report is null) return;
             var (icon, _) = WeatherService.Describe(report.Code);
             WeatherIcon.Content = TryFindResource(icon);

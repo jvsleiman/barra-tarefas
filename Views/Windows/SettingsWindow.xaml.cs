@@ -69,6 +69,7 @@ public partial class SettingsWindow : Window
         LightTheme.IsChecked = _applied.Theme == AppTheme.Light;
         TurkishLanguage.IsChecked = _applied.Language == AppLanguage.Turkish;
         EnglishLanguage.IsChecked = _applied.Language == AppLanguage.English;
+        PortugueseLanguage.IsChecked = _applied.Language == AppLanguage.Portuguese;
         SelectAlignment(_applied);
         AnimationsToggle.IsChecked = _applied.AnimationsEnabled;
         PreviewsToggle.IsChecked = _applied.PreviewsEnabled;
@@ -212,7 +213,8 @@ public partial class SettingsWindow : Window
         return _preferences.Current with
         {
             Theme = LightTheme.IsChecked == true ? AppTheme.Light : AppTheme.Dark,
-            Language = EnglishLanguage.IsChecked == true ? AppLanguage.English : AppLanguage.Turkish,
+            Language = EnglishLanguage.IsChecked == true ? AppLanguage.English
+                : PortugueseLanguage.IsChecked == true ? AppLanguage.Portuguese : AppLanguage.Turkish,
             // Full width keeps the last floating alignment so switching back restores it.
             Position = RightPosition.IsChecked == true ? DockPosition.Right : LeftPosition.IsChecked == true ? DockPosition.Left
                 : CenterPosition.IsChecked == true ? DockPosition.Center : _preferences.Current.Position,
@@ -581,6 +583,7 @@ public partial class SettingsWindow : Window
         LightTheme.IsChecked = settings.Theme == AppTheme.Light;
         TurkishLanguage.IsChecked = settings.Language == AppLanguage.Turkish;
         EnglishLanguage.IsChecked = settings.Language == AppLanguage.English;
+        PortugueseLanguage.IsChecked = settings.Language == AppLanguage.Portuguese;
         SelectAlignment(settings);
         AnimationsToggle.IsChecked = settings.AnimationsEnabled;
         PreviewsToggle.IsChecked = settings.PreviewsEnabled;

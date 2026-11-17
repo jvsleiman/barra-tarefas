@@ -169,7 +169,7 @@ public sealed class LauncherCatalog
         foreach (var file in files)
         {
             yield return new LauncherEntry(Path.GetFileNameWithoutExtension(file.Name), file.FullName, LauncherKind.Recent,
-                file.LastWriteTime.ToString("g", CultureInfo.GetCultureInfo(english ? "en-US" : "tr-TR")));
+                file.LastWriteTime.ToString("g", UiText.CultureFor(UiText.Current.Language)));
         }
     }
 

@@ -68,7 +68,7 @@ public sealed class WeatherWidget : DockWidget
         _loading = loading;
         _loadedAt = DateTime.Now;
         var key = LocationKey;
-        var (report, error) = await WeatherService.LoadAsync(Settings.WeatherCity, Settings.Language == AppLanguage.English, loading.Token);
+        var (report, error) = await WeatherService.LoadAsync(Settings.WeatherCity, Settings.Language != AppLanguage.Turkish, loading.Token);
         if (!ReferenceEquals(_loading, loading)) return;
         _loading = null;
         if (!IsActive) return;
@@ -249,7 +249,7 @@ public sealed class WeatherWidget : DockWidget
         root.Children.Add(forecastHeading);
 
         // Next 3 days forecast cards
-        var culture = CultureInfo.GetCultureInfo(Settings.Language == AppLanguage.English ? "en-US" : "tr-TR");
+        var culture = UiText.CultureFor(Settings.Language);
         var forecastDays = report.Days.Skip(1).Take(3).ToList();
         var daysGrid = new UniformGrid { Columns = Math.Max(1, forecastDays.Count), Margin = new Thickness(0, 0, 0, 6) };
 

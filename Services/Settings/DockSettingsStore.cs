@@ -16,8 +16,12 @@ public sealed class DockSettingsStore
 
     public DockSettingsStore(string? path = null, CultureInfo? defaultCulture = null)
     {
-        _defaultLanguage = (defaultCulture ?? CultureInfo.CurrentUICulture).TwoLetterISOLanguageName
-            .Equals("tr", StringComparison.OrdinalIgnoreCase) ? AppLanguage.Turkish : AppLanguage.English;
+        _defaultLanguage = (defaultCulture ?? CultureInfo.CurrentUICulture).TwoLetterISOLanguageName.ToLowerInvariant() switch
+        {
+            "tr" => AppLanguage.Turkish,
+            "pt" => AppLanguage.Portuguese,
+            _ => AppLanguage.English
+        };
         _path = path ?? Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "OpenTaskbar",
