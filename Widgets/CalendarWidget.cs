@@ -17,6 +17,8 @@ public sealed class CalendarWidget : DockWidget
     private readonly TextBlock _day;
     private readonly TextBlock _title;
     private readonly TextBlock _subtitle;
+    private readonly ShellSurfaceToggle _panelToggle = new();
+    private bool? _panelOpenAtPress;
     private (string Title, DateTime Start)? _nextEvent;
     private string _renderKey = string.Empty;
 
@@ -47,7 +49,23 @@ public sealed class CalendarWidget : DockWidget
 
         _button = new Button { Content = layout, Padding = new Thickness(10, 0, 12, 0) };
         _button.SetResourceReference(StyleProperty, "WidgetCardButton");
-        _button.Click += (_, _) => Report(ShellShortcuts.OpenNotificationCenter());
+        // Win+N panel as a toggle: the dock never takes focus, so a second click would otherwise reopen it.
+        _button.PreviewMouseLeftButtonDown += (_, _) =>
+            _panelOpenAtPress = _panelToggle.WasOpen(DateTime.UtcNow, StartMenuState.IsNotificationCenterForeground());
+        _button.Click += (_, _) =>
+        {
+            var wasOpen = _panelOpenAtPress ?? StartMenuState.IsNotificationCenterForeground();
+            _panelOpenAtPress = null;
+            if (wasOpen)
+            {
+                _panelToggle.Reset();
+                if (StartMenuState.IsNotificationCenterForeground()) Report(ShellShortcuts.SendChord(0x1B));
+                return;
+            }
+
+            Report(ShellShortcuts.OpenNotificationCenter());
+            _panelToggle.RecordOpen(DateTime.UtcNow);
+        };
         Content = _button;
         UiText.Current.PropertyChanged += (_, _) =>
         {

@@ -769,12 +769,16 @@ public partial class MainWindow : Window
             return;
         }
 
+        if (CloseStartMenuIfOpen()) return;
         const uint wmSysCommand = 0x0112;
         const int scTaskList = 0xF130;
         if (_source is null || !PostMessage(_source.Handle, wmSysCommand, scTaskList, 0))
         {
             ShowStatus(UiText.Get("ErrorStartMenuOpen"));
+            return;
         }
+
+        WatchStartMenu();
     }
 
     private void OpenDockApp(DockApp app, bool toggleIfForeground = false, nint? foregroundAtPress = null)

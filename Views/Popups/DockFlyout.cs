@@ -19,6 +19,8 @@ public sealed class DockFlyout
     private nint _previousForeground;
     private bool _restoreFocus;
     private long _closedAt;
+    private bool _closedWithPointerOnTarget;
+    private static long _lastOpenedAt;
     private readonly Popup _popup;
     private readonly Border _frame;
     private readonly Border _innerBevel;
@@ -68,8 +70,6 @@ public sealed class DockFlyout
         {
             _openCount = Math.Max(0, _openCount - 1);
             OpenFlyouts.Remove(this);
-            _closedTarget = _popup.PlacementTarget;
-            _closedAt = Environment.TickCount64;
             // Light dismiss and Esc hand the keyboard back to the app that had it before the flyout opened.
             if (_restoreFocus && _previousForeground != 0
                 && _popup.PlacementTarget is { } target && Window.GetWindow(target) is { IsActive: true })
@@ -79,6 +79,18 @@ public sealed class DockFlyout
 
             Closed?.Invoke(this, EventArgs.Empty);
         };
+        // Closed is raised only after the fade-out finishes, but a press on the anchor light-dismisses the flyout on
+        // mouse down and its click arrives ~60 ms later, mid-fade. Record the dismissal the moment IsOpen turns false,
+        // otherwise that click sees "not open, not recently closed" and reopens the flyout it just closed.
+        System.ComponentModel.DependencyPropertyDescriptor.FromProperty(Popup.IsOpenProperty, typeof(Popup))
+            .AddValueChanged(_popup, (_, _) =>
+            {
+                if (_popup.IsOpen) return;
+                _closedTarget = _popup.PlacementTarget;
+                _closedAt = Environment.TickCount64;
+                // Remembered so a click held longer than the grace period still toggles closed.
+                _closedWithPointerOnTarget = _popup.PlacementTarget is FrameworkElement anchor && IsPointerOver(anchor);
+            });
         _popup.KeyDown += (_, args) =>
         {
             if (args.Key != System.Windows.Input.Key.Escape) return;
@@ -122,6 +134,7 @@ public sealed class DockFlyout
         _restoreFocus = true;
         owner?.Activate();
         _popup.IsOpen = true;
+        _lastOpenedAt = Environment.TickCount64;
         _frame.Focusable = true;
         _frame.Focus();
     }
@@ -139,8 +152,37 @@ public sealed class DockFlyout
         Show(target, content(), animate);
     }
 
-    public bool RecentlyClosed(UIElement target) =>
-        ReferenceEquals(_closedTarget, target) && Environment.TickCount64 - _closedAt < 350;
+    public bool RecentlyClosed(UIElement target)
+    {
+        if (!ReferenceEquals(_closedTarget, target)) return false;
+        var elapsed = Environment.TickCount64 - _closedAt;
+        if (elapsed >= 350 && !(_closedWithPointerOnTarget && elapsed < 2000)) return false;
+        _closedTarget = null; // consume it: the next click on the anchor opens again
+        return true;
+    }
+
+    /// <summary>
+    /// True right after a flyout opened. Opening activates the dock, and Windows sometimes bounces activation for a
+    /// moment (seen with the hidden Alt+Tab host); that deactivation must not close the flyout that was just opened.
+    /// </summary>
+    public static bool OpenedRecently => Environment.TickCount64 - _lastOpenedAt < 800;
+
+    internal static bool IsPointerOver(FrameworkElement element)
+    {
+        if (!element.IsVisible || PresentationSource.FromVisual(element) is null || !GetCursorPos(out var cursor)) return false;
+        var topLeft = element.PointToScreen(new Point(0, 0));
+        var bottomRight = element.PointToScreen(new Point(element.ActualWidth, element.ActualHeight));
+        return cursor.X >= topLeft.X && cursor.X < bottomRight.X && cursor.Y >= topLeft.Y && cursor.Y < bottomRight.Y;
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out CursorPoint point);
+
+    private struct CursorPoint
+    {
+        public int X;
+        public int Y;
+    }
 
     /// <summary>Closes without restoring focus: used when a flyout action opens something that should get it.</summary>
     public void Close()

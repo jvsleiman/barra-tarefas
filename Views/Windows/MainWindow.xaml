@@ -178,7 +178,7 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel x:Name="DockContents" Orientation="Horizontal" HorizontalAlignment="Left"
                                         VerticalAlignment="Center">
-                            <Button x:Name="StartButton" Style="{StaticResource StartDockButton}" Click="StartButton_Click"
+                            <Button x:Name="StartButton" Style="{StaticResource StartDockButton}" Click="StartButton_Click" PreviewMouseLeftButtonDown="StartButton_PreviewMouseLeftButtonDown"
                                     AutomationProperties.Name="{local:Loc Start}" ToolTip="{local:Loc Start}" ToolTipService.InitialShowDelay="650">
                                 <Grid Width="{DynamicResource DockIconSize}" Height="{DynamicResource DockIconSize}"
                                       RenderTransformOrigin="0.5,0.95">

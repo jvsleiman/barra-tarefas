@@ -38,7 +38,7 @@ public partial class MainWindow
         Deactivated += (_, _) =>
         {
             EndKeyboardNavigation(restoreForeground: false);
-            DockFlyout.CloseAll();
+            if (!DockFlyout.OpenedRecently) DockFlyout.CloseAll();
         };
         PreviewKeyDown += Dock_PreviewKeyDown;
         _updateTimer = new DispatcherTimer(DispatcherPriority.Background, Dispatcher) { Interval = TimeSpan.FromSeconds(12) };
