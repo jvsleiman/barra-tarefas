@@ -177,11 +177,11 @@ void SettingsChecks()
     try
     {
         var store = new DockSettingsStore(path);
-        File.WriteAllText(path, "{\"Widgets\":[\"Clock\",\"Date\"]}");
+        File.WriteAllText(path, "{\"StyleVersion\":1,\"Widgets\":[\"Clock\",\"Date\"]}");
         var legacy = store.Load();
         Check(legacy.Error is null && legacy.Settings.InstalledWidgets?.SequenceEqual(["Clock", "Date"]) == true,
             "Legacy selections must migrate before validation.");
-        File.WriteAllText(path, "{\"Widgets\":[\"Clock\",\"Memory\"],\"InstalledWidgets\":[\"Clock\",\"Memory\",\"Storage\"]}");
+        File.WriteAllText(path, "{\"StyleVersion\":1,\"Widgets\":[\"Clock\",\"Memory\"],\"InstalledWidgets\":[\"Clock\",\"Memory\",\"Storage\"]}");
         var removedMemory = store.Load();
         Check(removedMemory.Error is null && removedMemory.Settings.Widgets?.SequenceEqual(["Clock"]) == true
             && removedMemory.Settings.InstalledWidgets?.SequenceEqual(["Clock", "Storage"]) == true,
@@ -201,6 +201,23 @@ void SettingsChecks()
             "A valid dock scale must persist and reload.");
         Check(store.Save(new DockSettings(DockScale: 0.5)) is not null && store.Save(new DockSettings(DockScale: 2.0)) is not null,
             "Out-of-range dock scale values must be rejected.");
+        File.WriteAllText(path, "{\"Layout\":\"Floating\",\"Size\":\"Compact\",\"MagnificationEnabled\":true,\"Widgets\":[\"Media\"],\"InstalledWidgets\":[\"Media\",\"Focus\"],\"PinOrder\":[\"C:\\\\a.exe\"]}");
+        var preTiles = store.Load();
+        Check(preTiles.Error is null && preTiles.Settings is { Layout: DockLayout.FullWidth, Size: DockSize.Medium, MagnificationEnabled: false, IconTiles: true, StyleVersion: DockSettings.CurrentStyleVersion }
+            && preTiles.Settings.Widgets?.SequenceEqual(["Media", "Calendar", "Tray", "Clock"]) == true
+            && preTiles.Settings.InstalledWidgets?.SequenceEqual(["Media", "Focus", "Calendar", "Tray", "Clock"]) == true
+            && preTiles.Settings.PinOrder?.SequenceEqual(["C:\\a.exe"]) == true,
+            "Pre-tile settings must migrate once to the tile look while keeping pins and widgets.");
+        Check(store.Save(preTiles.Settings with { Layout = DockLayout.Floating }) is null && store.Load().Settings.Layout == DockLayout.Floating,
+            "After migration the user's own layout choice must stick.");
+        File.Delete(path);
+        Check(store.Load().Settings is { Layout: DockLayout.FullWidth, IconTiles: true } fresh
+            && fresh.Widgets?.SequenceEqual(DockSettings.DefaultWidgets) == true,
+            "A first launch must start with the tile look and the calendar, tray and clock cards.");
+        Check(store.Save(new DockSettings(AppGroups: [new DockAppGroup("", ["C:\\a.exe"])])) is not null
+            && store.Save(new DockSettings(AppGroups: [new DockAppGroup("Work", ["C:\\a.exe", "C:\\b.exe"])])) is null
+            && store.Load().Settings.AppGroups?.Single().Apps.Count == 2,
+            "App groups must persist and reject unnamed groups.");
     }
     finally
     {

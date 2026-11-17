@@ -48,6 +48,8 @@ public sealed class DockSettingsStore
                     Widgets = settings.Widgets?.Where(id => id != RemovedMemoryWidgetId).ToArray(),
                     InstalledWidgets = settings.InstalledWidgets?.Where(id => id != RemovedMemoryWidgetId).ToArray()
                 };
+            if (settings is not null && !document.RootElement.TryGetProperty(nameof(DockSettings.StyleVersion), out _))
+                settings = MigrateToTileStyle(settings);
             if (settings is null || !IsValid(settings))
             {
                 return (CreateDefaultSettings(), UiText.Get("ErrorDockSettingsInvalid"));
@@ -69,7 +71,30 @@ public sealed class DockSettingsStore
         }
     }
 
-    private DockSettings CreateDefaultSettings() => new(Language: _defaultLanguage);
+    private DockSettings CreateDefaultSettings() => new(
+        Language: _defaultLanguage,
+        Widgets: DockSettings.DefaultWidgets,
+        InstalledWidgets: DockSettings.DefaultWidgets);
+
+    /// <summary>
+    /// One-time move of pre-tile settings to the tile look: full-width bar, medium tiles, no magnification and the
+    /// calendar/tray/clock cards. Pins, profiles, stacks and every other choice are kept.
+    /// </summary>
+    internal static DockSettings MigrateToTileStyle(DockSettings settings)
+    {
+        static IReadOnlyList<string> WithDefaults(IReadOnlyList<string>? ids) =>
+            (ids ?? []).Concat(DockSettings.DefaultWidgets).Distinct(StringComparer.Ordinal).ToArray();
+        return settings with
+        {
+            Layout = DockLayout.FullWidth,
+            Size = DockSize.Medium,
+            MagnificationEnabled = false,
+            IconTiles = true,
+            Widgets = WithDefaults(settings.Widgets),
+            InstalledWidgets = WithDefaults(settings.InstalledWidgets),
+            StyleVersion = DockSettings.CurrentStyleVersion
+        };
+    }
 
     public string? Save(DockSettings settings)
     {
@@ -124,7 +149,9 @@ public sealed class DockSettingsStore
         && settings.WidgetOrder?.Any(string.IsNullOrWhiteSpace) != true
         && settings.WidgetOrder?.Distinct(StringComparer.OrdinalIgnoreCase).Count() == settings.WidgetOrder?.Count
         && settings.Profiles?.Any(profile => string.IsNullOrWhiteSpace(profile.Name) || profile.HiddenApps is null) != true
-        && settings.Profiles?.Select(profile => profile.Name).Distinct(StringComparer.CurrentCultureIgnoreCase).Count() == settings.Profiles?.Count;
+        && settings.Profiles?.Select(profile => profile.Name).Distinct(StringComparer.CurrentCultureIgnoreCase).Count() == settings.Profiles?.Count
+        && settings.AppGroups?.Any(group => string.IsNullOrWhiteSpace(group.Name) || group.Apps is null
+            || group.Apps.Any(string.IsNullOrWhiteSpace)) != true;
 
     public static bool Validate(DockSettings settings) => IsValid(settings);
 

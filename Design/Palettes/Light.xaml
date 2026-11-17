@@ -92,4 +92,12 @@
     <SolidColorBrush x:Key="WidgetFocusAccent" Color="#FFDC2626" />
     <SolidColorBrush x:Key="WidgetOnStroke" Color="#FF2563EB" />
     <SolidColorBrush x:Key="WidgetWarning" Color="#FFD97706" />
+    <!-- Tile look: every dock item sits in its own rounded tile. -->
+    <SolidColorBrush x:Key="DockTile" Color="#0D000000" />
+    <SolidColorBrush x:Key="DockTileStroke" Color="#14000000" />
+    <SolidColorBrush x:Key="DockTileHover" Color="#1A000000" />
+    <SolidColorBrush x:Key="DockDivider" Color="#1A000000" />
+    <SolidColorBrush x:Key="RunningDotBrush" Color="#FF2563EB" />
+    <SolidColorBrush x:Key="WeekdayAccent" Color="#FFDC2626" />
+    <SolidColorBrush x:Key="EventAccent" Color="#FFD97706" />
 </ResourceDictionary>

@@ -19,7 +19,8 @@ public sealed class TrayWidget : DockWidget
         var glyph = new ContentControl { Content = FindResource("IconChevronUp"), Width = 16, Height = 16 };
         glyph.SetResourceReference(StyleProperty, "WidgetIcon");
         glyph.SetResourceReference(ForegroundProperty, "TextPrimary");
-        _button = new Button { Content = glyph, Padding = new Thickness(10, 0, 10, 0) };
+        // A square tile like the app icons; it opens the background-apps flyout.
+        _button = new Button { Content = glyph, Padding = new Thickness(0), Width = 44 };
         _button.SetResourceReference(StyleProperty, "WidgetCardButton");
         _button.Click += Button_Click;
         void Localize()

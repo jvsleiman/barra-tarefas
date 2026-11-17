@@ -15,7 +15,7 @@ public partial class ClockWidget : DockWidget
 
     public ClockWidget() => InitializeComponent();
 
-    private CultureInfo Culture => CultureInfo.GetCultureInfo(Settings.Language == AppLanguage.English ? "en-US" : "tr-TR");
+    private CultureInfo Culture => UiText.CultureFor(Settings.Language);
 
     protected override void OnActivated()
     {
@@ -29,10 +29,61 @@ public partial class ClockWidget : DockWidget
         if (IsActive) OnTick(DateTime.Now);
     }
 
-    protected override void OnDeactivated() => _calendar.Close();
+protected override void OnDeactivated()
+    {
+        _calendar.Close();
+        _weatherLoad?.Cancel();
+    }
+
+    // ---- Weather under the time (shares Open-Meteo with the Weather widget; refreshed every 30 min) ----
+
+    private CancellationTokenSource? _weatherLoad;
+    private DateTime _nextWeatherLoad;
+    private string _weatherKey = string.Empty;
+
+    private void UpdateWeather(DateTime now)
+    {
+        if (!Settings.ClockShowWeather)
+        {
+            WeatherRow.Visibility = Visibility.Collapsed;
+            return;
+        }
+
+        var key = $"{Settings.WeatherCity.Trim()}|{Settings.Language}";
+        if (key != _weatherKey)
+        {
+            _weatherKey = key;
+            _nextWeatherLoad = DateTime.MinValue;
+        }
+
+        if (now < _nextWeatherLoad) return;
+        _nextWeatherLoad = now.AddMinutes(2); // retry delay until a load succeeds
+        _ = LoadWeatherAsync(key);
+    }
+
+    private async Task LoadWeatherAsync(string key)
+    {
+        _weatherLoad?.Cancel();
+        var load = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+        _weatherLoad = load;
+        try
+        {
+            var (report, _) = await WeatherService.LoadAsync(Settings.WeatherCity, Settings.Language == AppLanguage.English, load.Token);
+            if (!IsActive || load.IsCancellationRequested || key != _weatherKey || report is null) return;
+            var (icon, _) = WeatherService.Describe(report.Code);
+            WeatherIcon.Content = TryFindResource(icon);
+            WeatherText.Text = $"{Math.Round(report.Temperature).ToString(Culture)}°";
+            WeatherRow.Visibility = Settings.ClockShowWeather ? Visibility.Visible : Visibility.Collapsed;
+            _nextWeatherLoad = DateTime.Now.AddMinutes(30);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
 
     protected override void OnTick(DateTime now)
     {
+        UpdateWeather(now);
         var culture = Culture;
         var timeFormat = Settings.Clock24Hour
             ? (Settings.ClockShowSeconds ? "HH:mm:ss" : "HH:mm")
@@ -49,7 +100,7 @@ public partial class ClockWidget : DockWidget
                     DateColumn.Visibility = Visibility.Visible;
                     DayOfWeekText.Visibility = Visibility.Visible;
                     DayOfWeekText.Text = now.ToString("dddd", culture).ToUpper(culture);
-                    DateText.Text = now.ToString(Settings.Language == AppLanguage.English ? "MMM d" : "d MMM", culture);
+                    DateText.Text = now.ToString(Settings.Language == AppLanguage.English ? "MMM d" : "d MMM", culture).Replace(".", string.Empty);
                     break;
                 case ClockDateStyle.ShortDateOnly:
                     DateColumn.Visibility = Visibility.Visible;

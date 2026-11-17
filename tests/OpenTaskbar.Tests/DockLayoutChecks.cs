@@ -386,16 +386,23 @@ internal static class DockLayoutChecks
         // Verify optical glass materials and bevel resources
         var darkTheme = new ResourceDictionary { Source = new Uri("/OpenTaskbar;component/Design/Palettes/Dark.xaml", UriKind.Relative) };
         var lightTheme = new ResourceDictionary { Source = new Uri("/OpenTaskbar;component/Design/Palettes/Light.xaml", UriKind.Relative) };
-        Check(darkTheme["DockBorderMaterial"] is LinearGradientBrush { GradientStops.Count: >= 4 }, "Dark theme must define multi-stop Fresnel rim light gradient.");
+        // Dark is the flat tile look (thin 10% white rim, no sheen); Light keeps the glass materials.
+        Check(darkTheme["DockBorderMaterial"] is SolidColorBrush { Color: { A: 0x1A, R: 0xFF, G: 0xFF, B: 0xFF } }, "Dark theme must use a thin 10% white rim.");
+        Check(darkTheme["DockMaterial"] is LinearGradientBrush { GradientStops: var darkStops } && darkStops.All(stop => stop.Color == Color.FromRgb(0x0A, 0x0A, 0x0C)),
+            "Dark dock surface must be near-black so the opacity setting controls translucency.");
         Check(lightTheme["DockBorderMaterial"] is LinearGradientBrush { GradientStops.Count: >= 4 }, "Light theme must define multi-stop Fresnel rim light gradient.");
-        Check(darkTheme["DockInnerBevelMaterial"] is LinearGradientBrush, "Dark theme must define optical inner bevel refraction line.");
         Check(lightTheme["DockInnerBevelMaterial"] is LinearGradientBrush, "Light theme must define optical inner bevel refraction line.");
-        Check(darkTheme["DockHighlight"] is LinearGradientBrush, "Dark theme must define surface specular highlight.");
         Check(lightTheme["DockHighlight"] is LinearGradientBrush, "Light theme must define surface specular highlight.");
+        foreach (var key in new[] { "DockTile", "DockTileStroke", "DockTileHover", "DockDivider", "RunningDotBrush", "WeekdayAccent", "EventAccent" })
+            Check(darkTheme[key] is SolidColorBrush && lightTheme[key] is SolidColorBrush, $"Both themes must define {key} for the tile look.");
+        Check(darkTheme["RunningDotBrush"] is SolidColorBrush { Color: { R: 0x3B, G: 0x82, B: 0xF6 } }, "Running apps must use the blue dot.");
+        var tileProfile = DockMetrics.For(DockSize.Medium);
+        Check(tileProfile.Cell - 6 == 44 && tileProfile.SurfaceHeight is >= 52 and <= 56 && tileProfile.Icon is >= 28 and <= 30,
+            "Medium must give 44 DIP tiles with 6 DIP gaps in a 52-56 DIP bar.");
         Check(app.FindResource("StartDockButton") is Style, "StartDockButton tactile tile style must be defined.");
 
         // Verify WidgetCoordinator ordering, reordering and validation
-        Check(WidgetCoordinator.DefaultWidgetOrder.Length == 9, "WidgetCoordinator must have 9 default widgets.");
+        Check(WidgetCoordinator.DefaultWidgetOrder.Length == 10, "WidgetCoordinator must have 10 default widgets.");
         Check(WidgetCoordinator.GetLabelKey("Clock") == "WidgetClock", "Clock widget label key must match.");
         Check(WidgetCoordinator.GetLabelKey("Media") == "WidgetMedia", "Media widget label key must match.");
 
@@ -413,7 +420,7 @@ internal static class DockLayoutChecks
         coordinator.ApplyOrder(["Clock", "Focus", "Media"]);
         Check(coordinator.CurrentOrder[0] == "Clock" && coordinator.CurrentOrder[1] == "Focus" && coordinator.CurrentOrder[2] == "Media",
             "ApplyOrder must reorder widgets per specified order.");
-        Check(testStrip.Children.Count == 9, "Strip children count must remain 9 after reordering.");
+        Check(testStrip.Children.Count == WidgetCoordinator.DefaultWidgetOrder.Length, "Strip children count must stay equal to the widget count after reordering.");
 
         IReadOnlyList<string>? capturedOrder = null;
         coordinator.OrderChanged = order => capturedOrder = order;

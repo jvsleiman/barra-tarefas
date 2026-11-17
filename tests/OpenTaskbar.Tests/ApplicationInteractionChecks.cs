@@ -87,19 +87,19 @@ internal static class ApplicationInteractionChecks
                 var secondSurface = (Border)secondButton.Template.FindName("Surface", secondButton);
                 Check(firstSurface.Background == application.FindResource("SurfaceSelectedStrong"),
                     "The foreground application must have a background without keyboard focus.");
-                Check(secondButton.IsKeyboardFocused && IsTransparent(secondSurface.Background),
-                    "Keyboard focus on a background app must not create an active background.");
+                Check(secondButton.IsKeyboardFocused && secondSurface.Background == application.FindResource("DockTile"),
+                    "Keyboard focus on a background app must keep the plain tile, not the active background.");
                 Check(secondSurface.BorderBrush == application.FindResource("StrokeFocus"),
                     "Keyboard navigation must retain a visible focus outline.");
                 first.IsForeground = false;
                 second.IsForeground = true;
                 Flush();
-                Check(IsTransparent(firstSurface.Background)
+                Check(firstSurface.Background == application.FindResource("DockTile")
                     && secondSurface.Background == application.FindResource("SurfaceSelectedStrong"),
                     "Switching applications must move the foreground background immediately.");
                 second.IsForeground = false;
                 Flush();
-                Check(secondButton.IsKeyboardFocused && IsTransparent(secondSurface.Background),
+                Check(secondButton.IsKeyboardFocused && secondSurface.Background == application.FindResource("DockTile"),
                     "Minimizing the selected app must clear its background even while its button retains focus.");
                 first.IsForeground = true;
                 Flush();

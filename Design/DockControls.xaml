@@ -35,8 +35,10 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <!-- Tile look: each dock item is a rounded tile (DockTile) inset 3 DIP inside its cell, so 50 DIP cells give
+         44 DIP tiles with 6 DIP gaps. Running apps get a small blue dot inside the tile; the foreground app a capsule. -->
     <Style x:Key="DockButton" TargetType="Button">
-        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Background" Value="{DynamicResource DockTile}" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Width" Value="{DynamicResource DockCellSize}" />
@@ -48,28 +50,21 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Surface" Background="{TemplateBinding Background}"
-                            BorderBrush="Transparent" BorderThickness="{StaticResource ControlStroke}"
-                            CornerRadius="{StaticResource ControlRadius}" Padding="{TemplateBinding Padding}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*" />
-                                <RowDefinition Height="6" />
-                            </Grid.RowDefinitions>
-                            <!-- Aurora hover: a soft light pool under the icon instead of a hover box. -->
-                            <Ellipse x:Name="HoverGlow" Grid.RowSpan="2" Margin="-6,0,-6,-4" Fill="{DynamicResource IconHoverGlow}"
-                                     Opacity="0" IsHitTestVisible="False" />
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            <!-- Running apps get a refined luminous dot; the foreground app a vibrant glowing mini capsule. -->
-                            <Rectangle x:Name="ActiveIndicator" Grid.Row="1" Height="4" Width="4" RadiusX="2" RadiusY="2"
-                                       Fill="{DynamicResource IndicatorBrush}" VerticalAlignment="Center"
-                                       HorizontalAlignment="Center" Visibility="Collapsed" />
-                        </Grid>
-                    </Border>
+                    <Grid Background="Transparent">
+                        <Border x:Name="Surface" Margin="{DynamicResource DockTileInset}" Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource DockTileStroke}" BorderThickness="{StaticResource ControlStroke}"
+                                CornerRadius="{StaticResource DockTileRadius}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                            <Grid>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Rectangle x:Name="ActiveIndicator" Height="4" Width="4" RadiusX="2" RadiusY="2"
+                                           Fill="{DynamicResource RunningDotBrush}" VerticalAlignment="Bottom" Margin="0,0,0,2"
+                                           HorizontalAlignment="Center" Visibility="Collapsed" IsHitTestVisible="False" />
+                            </Grid>
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Surface" Property="Background" Value="Transparent" />
-                            <Setter TargetName="HoverGlow" Property="Opacity" Value="1" />
+                            <Setter TargetName="Surface" Property="Background" Value="{DynamicResource DockTileHover}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Surface" Property="Background" Value="{DynamicResource SurfacePressed}" />
@@ -82,22 +77,11 @@
                         </Trigger>
                         <DataTrigger Binding="{Binding IsRunning}" Value="True">
                             <Setter TargetName="ActiveIndicator" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="ActiveIndicator" Property="Opacity" Value="0.75" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding IsForeground}" Value="True">
                             <Setter TargetName="Surface" Property="Background" Value="{DynamicResource SurfaceSelectedStrong}" />
                             <Setter TargetName="ActiveIndicator" Property="Visibility" Value="Visible" />
-                            <Setter TargetName="ActiveIndicator" Property="Opacity" Value="1.0" />
-                            <Setter TargetName="ActiveIndicator" Property="Width" Value="8" />
-                            <Setter TargetName="ActiveIndicator" Property="Height" Value="4" />
-                            <Setter TargetName="ActiveIndicator" Property="RadiusX" Value="2" />
-                            <Setter TargetName="ActiveIndicator" Property="RadiusY" Value="2" />
-                            <Setter TargetName="ActiveIndicator" Property="Fill" Value="{DynamicResource IndicatorForegroundBrush}" />
-                            <Setter TargetName="ActiveIndicator" Property="Effect">
-                                <Setter.Value>
-                                    <DropShadowEffect Color="#38BDF8" BlurRadius="6" ShadowDepth="0" Opacity="0.95" />
-                                </Setter.Value>
-                            </Setter>
+                            <Setter TargetName="ActiveIndicator" Property="Width" Value="10" />
                         </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -105,34 +89,33 @@
         </Setter>
     </Style>
 
-    <!-- Tactile recessed glass tile for the Start button matching Lumabar's hardware-button look. -->
+    <!-- Start button: the same tile with the four-square Windows logo. -->
     <Style x:Key="StartDockButton" TargetType="Button" BasedOn="{StaticResource DockButton}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Grid Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
-                        <Border x:Name="StartTile" Margin="4,4,4,4"
-                                CornerRadius="10"
-                                Background="{DynamicResource StartTileBackground}"
-                                BorderBrush="{DynamicResource StartTileBorder}"
-                                BorderThickness="1">
+                    <Grid Background="Transparent" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}">
+                        <Border x:Name="StartTile" Margin="{DynamicResource DockTileInset}" CornerRadius="{StaticResource DockTileRadius}"
+                                Background="{DynamicResource StartTileBackground}" BorderBrush="{DynamicResource DockTileStroke}"
+                                BorderThickness="1" SnapsToDevicePixels="True">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="StartTile" Property="Background" Value="{DynamicResource StartTileHover}" />
-                            <Setter TargetName="StartTile" Property="BorderBrush" Value="{DynamicResource StrokeFocus}" />
+                            <Setter TargetName="StartTile" Property="Background" Value="{DynamicResource DockTileHover}" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="StartTile" Property="Background" Value="{DynamicResource StartTilePressed}" />
+                            <Setter TargetName="StartTile" Property="Background" Value="{DynamicResource SurfacePressed}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="StartTile" Property="BorderBrush" Value="{DynamicResource StrokeFocus}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
-
     <Style x:Key="DockScrollViewerStyle" TargetType="{x:Type views:DockScrollViewer}">
         <Setter Property="AutomationProperties.HelpText" Value="{local:Loc ScrollDockHelp}" />
         <Setter Property="HorizontalScrollBarVisibility" Value="Hidden" />

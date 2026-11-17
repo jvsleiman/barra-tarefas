@@ -23,6 +23,7 @@ public sealed class ApplicationPreferences
         LoadError = null;
         UiText.Current.SetLanguage(settings.Language);
         ThemeManager.Apply(settings.Theme, settings.SurfaceOpacity);
+        ThemeManager.SetIconTiles(settings.IconTiles);
         Changed?.Invoke(this, EventArgs.Empty);
         return null;
     }

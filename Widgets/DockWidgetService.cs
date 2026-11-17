@@ -22,6 +22,7 @@ public sealed class DockWidgetService(TimeProvider timeProvider)
     public const string DesktopsId = "Desktops";
     public const string TrayId = "Tray";
     public const string WeatherId = "Weather";
+    public const string CalendarId = "Calendar";
     public const string BatteryId = "Battery";
     public const string StopwatchId = "Stopwatch";
     public const string CountdownId = "Countdown";
@@ -38,6 +39,7 @@ public sealed class DockWidgetService(TimeProvider timeProvider)
         new(FocusId, "WidgetFocus", _ => "25:00"),
         new(WeatherId, "WidgetWeather", _ => "21°"),
         new(DesktopsId, "WidgetDesktops", _ => "1 / 2"),
+        new(CalendarId, "WidgetCalendar", culture => DateTime.Now.ToString("ddd d", culture)),
         new(TrayId, "WidgetTray", _ => "▲"),
         new(BatteryId, "WidgetBattery", _ => ReadBatteryStatus()),
         new("Storage", "WidgetStorage", SystemWidgetData.ReadStorage),

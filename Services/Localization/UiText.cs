@@ -11,6 +11,21 @@ public sealed class UiText : INotifyPropertyChanged
         new Dictionary<string, (string, string)>
         {
             ["Settings"] = ("Ayarlar", "Settings"),
+            ["WidgetCalendar"] = ("Takvim", "Calendar"),
+            ["WidgetCalendarDescription"] = ("Gün, tarih ve sıradaki etkinlik.", "Day, date and your next event."),
+            ["NoEvents"] = ("Etkinlik yok", "No events"),
+            ["NoEventsHint"] = ("Takvim boş", "Your calendar is clear"),
+            ["EventIn"] = ("{0} sonra", "in {0}"),
+            ["IconTiles"] = ("Simge kutucukları", "Icon tiles"),
+            ["ClockShowWeather"] = ("Saatte hava durumunu göster", "Show weather under the time"),
+            ["AppGroup"] = ("Grup", "Group"),
+            ["AppGroupCreate"] = ("Yeni grup oluştur", "Create group"),
+            ["AppGroupAddTo"] = ("Gruba ekle", "Add to group"),
+            ["AppGroupRemoveFrom"] = ("Gruptan çıkar", "Remove from group"),
+            ["AppGroupRename"] = ("Grubu yeniden adlandır", "Rename group"),
+            ["AppGroupUngroup"] = ("Grubu dağıt", "Ungroup"),
+            ["AppGroupNamePrompt"] = ("Grup adı", "Group name"),
+            ["AppGroupDropHint"] = ("Gruplamak için bir uygulamanın üzerine bırakın", "Drop on an app to group them"),
             ["SettingsTitle"] = ("OpenTaskbar ayarları", "OpenTaskbar settings"),
             ["General"] = ("Genel", "General"),
             ["Appearance"] = ("Görünüm", "Appearance"),
@@ -455,6 +470,8 @@ public sealed class UiText : INotifyPropertyChanged
         }
     }
     public static string Get(string key) => Current[key];
+    public static System.Globalization.CultureInfo CultureFor(AppLanguage language) =>
+        System.Globalization.CultureInfo.GetCultureInfo(language == AppLanguage.English ? "en-US" : "tr-TR");
     public static string Format(string key, params object[] values) => string.Format(
         System.Globalization.CultureInfo.GetCultureInfo(Current._language == AppLanguage.English ? "en-US" : "tr-TR"), Get(key), values);
 

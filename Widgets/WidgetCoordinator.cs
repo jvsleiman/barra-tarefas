@@ -26,6 +26,7 @@ public sealed class WidgetCoordinator : IDisposable
         "Weather",
         "Audio",
         "QuickSettings",
+        "Calendar",
         "Tray",
         "Clock"
     ];
@@ -39,6 +40,7 @@ public sealed class WidgetCoordinator : IDisposable
         "Weather" => "WidgetWeather",
         "Audio" => "WidgetAudio",
         "QuickSettings" => "WidgetQuickSettings",
+        "Calendar" => "WidgetCalendar",
         "Tray" => "WidgetTray",
         "Clock" => "WidgetClock",
         _ => null
@@ -80,6 +82,7 @@ public sealed class WidgetCoordinator : IDisposable
             new("Weather", "WidgetWeather", new WeatherWidget(), s => IsCatalogEnabled(s, "Weather")),
             new("Audio", "WidgetAudio", new AudioWidget(), s => IsCatalogEnabled(s, "Audio")),
             new("QuickSettings", "WidgetQuickSettings", new QuickSettingsWidget(), s => IsCatalogEnabled(s, "QuickSettings")),
+            new("Calendar", "WidgetCalendar", new CalendarWidget(), s => IsCatalogEnabled(s, "Calendar")),
             new("Tray", "WidgetTray", tray, s => IsCatalogEnabled(s, "Tray")),
             new("Clock", "WidgetClock", new ClockWidget(), s => IsCatalogEnabled(s, "Clock") || IsCatalogEnabled(s, "Date"))
         ];
@@ -157,6 +160,7 @@ public sealed class WidgetCoordinator : IDisposable
         {
             _strip.Children.Add(item.Widget);
         }
+        UpdateDividers();
     }
 
     public void ReorderWidgets(int oldIndex, int newIndex)
@@ -393,6 +397,19 @@ public sealed class WidgetCoordinator : IDisposable
     {
         var now = DateTime.Now;
         foreach (var item in _widgets) item.Widget.Tick(now);
+        UpdateDividers();
+    }
+
+    /// <summary>Widgets can hide themselves (no media session), so dividers follow actual visibility.</summary>
+    internal void UpdateDividers()
+    {
+        var seenVisible = false;
+        foreach (var widget in _strip.Children.OfType<DockWidget>())
+        {
+            var visible = widget.Visibility == Visibility.Visible;
+            widget.ShowLeadingDivider = visible && seenVisible;
+            seenVisible |= visible;
+        }
     }
 
     public void Dispose()

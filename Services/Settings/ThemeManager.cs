@@ -24,6 +24,16 @@ public static class ThemeManager
         SetSurfaceOpacity(opacity);
     }
 
+    /// <summary>Tiles off keeps the layout but makes the tile fill and stroke transparent (classic icon row).</summary>
+    public static void SetIconTiles(bool enabled)
+    {
+        foreach (var key in new[] { "DockTile", "DockTileStroke", "StartTileBackground" })
+        {
+            if (enabled) Materials.Remove(key);
+            else Materials[key] = Brushes.Transparent;
+        }
+    }
+
     public static void SetSurfaceOpacity(double opacity)
     {
         if (!double.IsFinite(opacity) || opacity is < 0.6 or > 1) throw new ArgumentOutOfRangeException(nameof(opacity));

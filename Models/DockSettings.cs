@@ -35,6 +35,9 @@ public enum SystemMeters
 /// <summary>A named view of the dock that hides some pinned apps; pins themselves are never removed.</summary>
 public sealed record DockProfile(string Name, IReadOnlyList<string> HiddenApps);
 
+/// <summary>Pinned apps shown together in one dock tile (2x2 preview) that opens a flyout.</summary>
+public sealed record DockAppGroup(string Name, IReadOnlyList<string> Apps);
+
 // Missing JSON properties fall back to these constructor defaults, so older settings files stay valid.
 public sealed record DockSettings(
     DockPosition Position = DockPosition.Center,
@@ -48,9 +51,9 @@ public sealed record DockSettings(
     double SurfaceOpacity = 0.9,
     IReadOnlyList<string>? Widgets = null,
     IReadOnlyList<string>? InstalledWidgets = null,
-    DockLayout Layout = DockLayout.Floating,
-    DockSize Size = DockSize.Compact,
-    bool MagnificationEnabled = true,
+    DockLayout Layout = DockLayout.FullWidth,
+    DockSize Size = DockSize.Medium,
+    bool MagnificationEnabled = false,
     bool ShowClock = false,
     bool ShowMedia = false,
     bool ShowSystemStats = false,
@@ -83,4 +86,14 @@ public sealed record DockSettings(
     bool Clock24Hour = true,
     bool ClockShowSeconds = false,
     ClockDateStyle DateStyle = ClockDateStyle.DayAndShortDate,
-    SystemMeters StatsMeters = SystemMeters.All);
+    SystemMeters StatsMeters = SystemMeters.All,
+    // Each dock item sits in its own rounded tile.
+    bool IconTiles = true,
+    bool ClockShowWeather = true,
+    IReadOnlyList<DockAppGroup>? AppGroups = null,
+    // Files written before the tile look have no StyleVersion; the store migrates them once.
+    int StyleVersion = DockSettings.CurrentStyleVersion)
+{
+    public const int CurrentStyleVersion = 1;
+    public static readonly IReadOnlyList<string> DefaultWidgets = ["Calendar", "Tray", "Clock"];
+}

@@ -25,6 +25,25 @@ public class DockWidget : UserControl, IDisposable
         RenderTransformOrigin = new Point(0.5, 0.5);
     }
 
+    public static readonly DependencyProperty ShowLeadingDividerProperty = DependencyProperty.Register(
+        nameof(ShowLeadingDivider), typeof(bool), typeof(DockWidget),
+        new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.AffectsRender));
+
+    /// <summary>Draws a thin vertical divider in the gap before this card (set for every visible card but the first).</summary>
+    public bool ShowLeadingDivider
+    {
+        get => (bool)GetValue(ShowLeadingDividerProperty);
+        set => SetValue(ShowLeadingDividerProperty, value);
+    }
+
+    protected override void OnRender(DrawingContext drawingContext)
+    {
+        base.OnRender(drawingContext);
+        if (!ShowLeadingDivider || ActualHeight <= 0 || TryFindResource("DockDivider") is not Brush brush) return;
+        var inset = ActualHeight * 0.22;
+        drawingContext.DrawRectangle(brush, null, new Rect(0, inset, 1, ActualHeight - inset * 2));
+    }
+
     public Action<string>? ReportError { get; set; }
     protected bool IsActive { get; private set; }
     protected DockSettings Settings { get; private set; } = new();

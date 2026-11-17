@@ -15,7 +15,7 @@ public static class DockMetrics
     public const double WindowHeight = Headroom + ShelfHeight;
     public const double BottomGap = 6;
     public const double SideInset = 12;
-    public const double FullWidthSideInset = 6;
+    public const double FullWidthSideInset = 8;
     public const double EdgeTriggerHeight = 3;
 
     // Cells and icons (DIP).
@@ -66,7 +66,7 @@ public static class DockMetrics
     }
 
     /// <summary>Natural widget card height; smaller dock sizes scale the widget strip down from it.</summary>
-    public const double WidgetDesignHeight = 46;
+    public const double WidgetDesignHeight = 48;
 
     /// <summary>
     /// Geometry for each dock size and user scale factor (0.75–1.50). Surface = cell + 2 × vertical padding + 2 (border);
@@ -78,7 +78,8 @@ public static class DockMetrics
         var baseProfile = size switch
         {
             Models.DockSize.Compact => new DockSizeProfile(Shelf: 48, BottomGap: 3, Cell: 38, VerticalPadding: 2, Icon: 28, Radius: 16),
-            Models.DockSize.Medium => new DockSizeProfile(Shelf: 58, BottomGap: 5, Cell: 44, VerticalPadding: 3, Icon: 34, Radius: 19),
+            // Tile look: 44 DIP tiles + 6 DIP gaps in a 54 DIP bar floating 8 DIP above the screen edge.
+            Models.DockSize.Medium => new DockSizeProfile(Shelf: 63, BottomGap: 8, Cell: 50, VerticalPadding: 1, Icon: 28, Radius: 15),
             _ => new DockSizeProfile(Shelf: ShelfHeight, BottomGap: BottomGap, Cell: 50, VerticalPadding: 4, Icon: IconSize, Radius: 22)
         };
         if (Math.Abs(clamped - 1.0) < 0.001) return baseProfile;

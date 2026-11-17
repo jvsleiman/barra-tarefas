@@ -2,8 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=System.Runtime">
     <!-- Dock widget tokens -->
-    <sys:Double x:Key="WidgetHeight">46</sys:Double>
-    <CornerRadius x:Key="WidgetRadius">12</CornerRadius>
+    <sys:Double x:Key="WidgetHeight">44</sys:Double>
+    <CornerRadius x:Key="WidgetRadius">10</CornerRadius>
     <Thickness x:Key="WidgetSpacing">3,0</Thickness>
 
     <!-- Lucide-style geometries in a 24x24 box. *Fill variants are drawn filled, the rest stroked. -->

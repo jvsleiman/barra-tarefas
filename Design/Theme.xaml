@@ -5,7 +5,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Palettes/Dark.xaml" />
     </ResourceDictionary.MergedDictionaries>
-    <FontFamily x:Key="InterfaceFont">Segoe UI</FontFamily>
+    <FontFamily x:Key="InterfaceFont">Segoe UI Variable Text, Segoe UI</FontFamily>
     <sys:Double x:Key="MenuLabelWidth">286</sys:Double>
     <Thickness x:Key="MenuRowPadding">10,7</Thickness>
     <Thickness x:Key="MenuDividerInset">12,7</Thickness>
@@ -46,6 +46,8 @@
     <CornerRadius x:Key="DockInnerRadius">17</CornerRadius>
     <CornerRadius x:Key="DockSheenRadius">17,17,0,0</CornerRadius>
     <CornerRadius x:Key="ControlRadius">12</CornerRadius>
+    <CornerRadius x:Key="DockTileRadius">10</CornerRadius>
+    <Thickness x:Key="DockTileInset">3</Thickness>
     <CornerRadius x:Key="DockWidgetRadius">10</CornerRadius>
     <CornerRadius x:Key="PopupRadius">10</CornerRadius>
     <Style TargetType="ToolTip">

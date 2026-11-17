@@ -278,7 +278,7 @@ internal static class WidgetViewChecks
                 Render(catalogSurface, Path.Combine(directory, $"widget-catalog-{theme.ToString().ToLowerInvariant()}.png"));
                 var settingsPath = Path.Combine(Path.GetTempPath(), $"OpenTaskbarGallery-{Guid.NewGuid():N}.json");
                 var preferences = new ApplicationPreferences(new DockSettingsStore(settingsPath));
-                Check(preferences.Save(preferences.Current with { Theme = theme, Language = AppLanguage.Turkish }) is null,
+                Check(preferences.Save(preferences.Current with { Theme = theme, Language = AppLanguage.Turkish, Widgets = [], InstalledWidgets = [] }) is null,
                     "The isolated settings fixture must save successfully.");
                 var settings = new OpenTaskbar.SettingsWindow(preferences);
                 try
@@ -393,6 +393,7 @@ internal static class WidgetViewChecks
                 DockWidgetService.WeatherId => "21°",
                 DockWidgetService.DesktopsId => "1 / 2",
                 DockWidgetService.TrayId => "▲",
+                DockWidgetService.CalendarId => "Sal 17",
                 DockWidgetService.BatteryId => UiText.Get("SystemDataUnavailable"),
                 "Storage" => "128,5 GiB",
                 "DayProgress" => "61%",

@@ -125,8 +125,27 @@
                 </Grid>
             </Button>
         </DataTemplate>
+        <ContextMenu x:Key="GroupContextMenu" x:Shared="False" Opened="DockContextMenu_Opened" Closed="DockContextMenu_Closed">
+            <MenuItem Header="{local:Loc AppGroupRename}" Icon="{StaticResource IconSettings}" Click="GroupRename_Click" />
+            <MenuItem Header="{local:Loc AppGroupUngroup}" Icon="{StaticResource IconClose}" Click="GroupUngroup_Click" />
+        </ContextMenu>
+        <!-- App group tile: a 2x2 grid of member icons; click opens the group flyout. -->
+        <DataTemplate x:Key="AppGroupTemplate">
+            <Button Style="{StaticResource DockButton}" Click="AppGroup_Click" AutomationProperties.Name="{Binding Name}"
+                    ToolTip="{Binding ToolTip}" ToolTipService.InitialShowDelay="650" ContextMenu="{StaticResource GroupContextMenu}">
+                <ItemsControl ItemsSource="{Binding PreviewIcons}" Width="30" Height="30" IsHitTestVisible="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><UniformGrid Rows="2" Columns="2" /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding}" Margin="1" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Button>
+        </DataTemplate>
     </Window.Resources>
-
     <Grid x:Name="DockHost" ToolTipService.Placement="Custom">
         <Grid.RowDefinitions>
             <RowDefinition Height="{Binding Source={StaticResource DockHeadroom}}" />
@@ -176,6 +195,11 @@
                             </Button>
                             <Border x:Name="StartDivider" Width="1" Height="22" Background="{DynamicResource StrokeSubtle}" Margin="3,0,4,0" />
                             <ItemsControl x:Name="PinnedApps" ItemTemplate="{StaticResource DockAppIconTemplate}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                            </ItemsControl>
+                            <ItemsControl x:Name="AppGroupItems" ItemTemplate="{StaticResource AppGroupTemplate}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>

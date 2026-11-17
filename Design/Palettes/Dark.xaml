@@ -4,27 +4,14 @@
     <SolidColorBrush x:Key="TextPrimary" Color="#FFF1F3F5" />
     <SolidColorBrush x:Key="TextSecondary" Color="#FFADB5BF" />
     <!-- "Aurora" accents: one teal-to-sky gradient carries every active state across the dock. -->
-    <LinearGradientBrush x:Key="WindowsLogoBrush" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#FF5EEAD4" Offset="0" />
-        <GradientStop Color="#FF38BDF8" Offset="0.55" />
-        <GradientStop Color="#FF818CF8" Offset="1" />
-    </LinearGradientBrush>
+    <SolidColorBrush x:Key="WindowsLogoBrush" Color="#FFB4B8C0" />
     <RadialGradientBrush x:Key="IconHoverGlow" GradientOrigin="0.5,0.8" Center="0.5,0.75" RadiusX="0.6" RadiusY="0.6">
         <GradientStop Color="#3A7DD3FC" Offset="0" />
         <GradientStop Color="#00000000" Offset="1" />
     </RadialGradientBrush>
-    <LinearGradientBrush x:Key="DockHighlight" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#22FFFFFF" Offset="0" />
-        <GradientStop Color="#08FFFFFF" Offset="0.45" />
-        <GradientStop Color="#00FFFFFF" Offset="1" />
-    </LinearGradientBrush>
-    <LinearGradientBrush x:Key="DockInnerBevelMaterial" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#2EFFFFFF" Offset="0" />
-        <GradientStop Color="#0CFFFFFF" Offset="0.25" />
-        <GradientStop Color="#00000000" Offset="0.65" />
-        <GradientStop Color="#1C000000" Offset="1" />
-    </LinearGradientBrush>
-    <SolidColorBrush x:Key="StartTileBackground" Color="#16FFFFFF" />
+    <SolidColorBrush x:Key="DockHighlight" Color="#00FFFFFF" />
+    <SolidColorBrush x:Key="DockInnerBevelMaterial" Color="#00FFFFFF" />
+    <SolidColorBrush x:Key="StartTileBackground" Color="#0EFFFFFF" />
     <SolidColorBrush x:Key="StartTileBorder" Color="#22FFFFFF" />
     <SolidColorBrush x:Key="StartTileHover" Color="#2BFFFFFF" />
     <SolidColorBrush x:Key="StartTilePressed" Color="#3EFFFFFF" />
@@ -58,19 +45,13 @@
         <GradientStop Color="#FF38BDF8" Offset="1" />
     </LinearGradientBrush>
     <!-- Midnight Obsidian glass with a rich translucent optical body. -->
+    <!-- Near-black bar; ThemeManager applies the surface opacity (default 90%) to every stop. -->
     <LinearGradientBrush x:Key="DockMaterial" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#D610141D" Offset="0" />
-        <GradientStop Color="#E40D1017" Offset="0.45" />
-        <GradientStop Color="#EE090B10" Offset="1" />
+        <GradientStop Color="#FF0A0A0C" Offset="0" />
+        <GradientStop Color="#FF0A0A0C" Offset="1" />
     </LinearGradientBrush>
     <!-- Fresnel optical rim light: bright specular highlight on top, grounded ambient occlusion at bottom. -->
-    <LinearGradientBrush x:Key="DockBorderMaterial" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#85FFFFFF" Offset="0" />
-        <GradientStop Color="#30FFFFFF" Offset="0.12" />
-        <GradientStop Color="#15FFFFFF" Offset="0.45" />
-        <GradientStop Color="#08FFFFFF" Offset="0.85" />
-        <GradientStop Color="#6E000000" Offset="1" />
-    </LinearGradientBrush>
+    <SolidColorBrush x:Key="DockBorderMaterial" Color="#1AFFFFFF" />
     <SolidColorBrush x:Key="SettingsBackground" Color="#FF181A1E" />
     <SolidColorBrush x:Key="SettingsControl" Color="#FF22252A" />
     <SolidColorBrush x:Key="SettingsControlHover" Color="#FF2B2F35" />
@@ -81,9 +62,9 @@
     <SolidColorBrush x:Key="SettingsSidebarOverlay" Color="#2410141A" />
     <SolidColorBrush x:Key="CaptionCloseForeground" Color="#FFFFFFFF" />
     <!-- Dock widgets -->
-    <SolidColorBrush x:Key="WidgetCard" Color="#14FFFFFF" />
-    <SolidColorBrush x:Key="WidgetCardHover" Color="#24FFFFFF" />
-    <SolidColorBrush x:Key="WidgetCardStroke" Color="#1EFFFFFF" />
+    <SolidColorBrush x:Key="WidgetCard" Color="#0EFFFFFF" />
+    <SolidColorBrush x:Key="WidgetCardHover" Color="#1CFFFFFF" />
+    <SolidColorBrush x:Key="WidgetCardStroke" Color="#14FFFFFF" />
     <SolidColorBrush x:Key="WidgetTrack" Color="#2EFFFFFF" />
     <SolidColorBrush x:Key="WidgetAccent" Color="#FF2DD4BF" />
     <SolidColorBrush x:Key="WidgetAccentText" Color="#FFFFFFFF" />
@@ -94,4 +75,12 @@
     <SolidColorBrush x:Key="WidgetFocusAccent" Color="#FFEF4444" />
     <SolidColorBrush x:Key="WidgetOnStroke" Color="#FF4F8EF7" />
     <SolidColorBrush x:Key="WidgetWarning" Color="#FFFBBF24" />
+    <!-- Tile look: every dock item sits in its own rounded tile. -->
+    <SolidColorBrush x:Key="DockTile" Color="#0EFFFFFF" />
+    <SolidColorBrush x:Key="DockTileStroke" Color="#14FFFFFF" />
+    <SolidColorBrush x:Key="DockTileHover" Color="#1CFFFFFF" />
+    <SolidColorBrush x:Key="DockDivider" Color="#1AFFFFFF" />
+    <SolidColorBrush x:Key="RunningDotBrush" Color="#FF3B82F6" />
+    <SolidColorBrush x:Key="WeekdayAccent" Color="#FFEF4444" />
+    <SolidColorBrush x:Key="EventAccent" Color="#FFF59E0B" />
 </ResourceDictionary>

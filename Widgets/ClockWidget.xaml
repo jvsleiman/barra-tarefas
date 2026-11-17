@@ -3,7 +3,7 @@
               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
               xmlns:w="clr-namespace:OpenTaskbar.Widgets"
               xmlns:local="clr-namespace:OpenTaskbar.Services">
-    <Button x:Name="ClockButton" Style="{StaticResource WidgetCardButton}" Padding="10,2,12,2" Click="ClockButton_Click"
+    <Button x:Name="ClockButton" Style="{StaticResource WidgetCardButton}" Padding="12,0,12,0" Click="ClockButton_Click"
             AutomationProperties.Name="{local:Loc Calendar}">
         <Grid VerticalAlignment="Center">
             <Grid.ColumnDefinitions>
@@ -11,18 +11,24 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <!-- Left: Day name & Date -->
-            <StackPanel x:Name="DateColumn" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
-                <TextBlock x:Name="DayOfWeekText" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}"
+            <!-- Left: red weekday over the bold short date -->
+            <StackPanel x:Name="DateColumn" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,14,0">
+                <TextBlock x:Name="DayOfWeekText" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource WeekdayAccent}"
                            TextAlignment="Left" HorizontalAlignment="Left" />
-                <TextBlock x:Name="DateText" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimary}"
+                <TextBlock x:Name="DateText" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"
                            TextAlignment="Left" HorizontalAlignment="Left" Margin="0,-1,0,0" />
             </StackPanel>
 
-            <!-- Right: Time -->
+            <!-- Right: big time with the current weather under it -->
             <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                <TextBlock x:Name="TimeText" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"
-                           HorizontalAlignment="Right" />
+                <TextBlock x:Name="TimeText" FontSize="19" FontWeight="Bold" Foreground="{DynamicResource TextPrimary}"
+                           HorizontalAlignment="Right" Margin="0,-2,0,-2" />
+                <StackPanel x:Name="WeatherRow" Orientation="Horizontal" HorizontalAlignment="Right" Visibility="Collapsed">
+                    <ContentControl x:Name="WeatherIcon" Style="{StaticResource WidgetIcon}" Width="11" Height="11"
+                                    Foreground="{DynamicResource WidgetWarning}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                    <TextBlock x:Name="WeatherText" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondary}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
             </StackPanel>
         </Grid>
     </Button>

@@ -1067,6 +1067,7 @@ public partial class MainWindow : Window
         SetMenuItemVisibility(contextMenu, "UnpinDockApp", isPinnedTarget);
         SetSeparatorVisibility(contextMenu, "RunningCommandsDivider", isRunning);
         SetMenuItemVisibility(contextMenu, "HideInProfile", isPinnedTarget && ActiveProfile is not null);
+        PopulateGroupMenu(contextMenu, pinnedApp, isPinnedTarget);
         if (FindMenuItem(contextMenu, "ProfilesMenu") is { } profilesMenu) PopulateProfilesMenu(profilesMenu);
         if (FindMenuItem(contextMenu, "UpdateMenu") is { } updateMenu)
         {

@@ -64,6 +64,7 @@ public partial class MainWindow
         ApplyStartPlacement();
         ApplyEdge();
         ApplySecondaryDocks();
+        RebuildAppGroups();
         ApplyProfileFilter();
     }
 
@@ -231,19 +232,22 @@ public partial class MainWindow
     private bool IsHiddenByProfile(DockApp app) =>
         ActiveProfile?.HiddenApps.Contains(app.ExecutablePath, StringComparer.OrdinalIgnoreCase) == true;
 
-    private int VisiblePinnedCount => _pinnedApps.Count(app => !IsHiddenByProfile(app));
+    private int VisiblePinnedCount => _pinnedApps.Count(app => !IsHiddenByProfile(app) && !IsGrouped(app)) + _appGroups.Count;
 
     private void ApplyProfileFilter()
     {
         // Reassigning the filter rebuilds every pinned button, so only do it when the hidden set actually changes.
-        var signature = ActiveProfile is { } profile
+        // Grouped apps live inside their group tile, so they leave the pinned row like profile-hidden apps.
+        var profileSignature = ActiveProfile is { } profile
             ? string.Join("|", profile.HiddenApps.Order(StringComparer.OrdinalIgnoreCase))
             : null;
+        var groupSignature = _groupedPaths.Count > 0 ? string.Join("|", _groupedPaths.Order(StringComparer.OrdinalIgnoreCase)) : null;
+        var signature = profileSignature is null && groupSignature is null ? null : $"{profileSignature}#{groupSignature}";
         if (_appliedProfileSignature == signature && _profileFilterApplied) return;
         _appliedProfileSignature = signature;
         _profileFilterApplied = true;
         var view = CollectionViewSource.GetDefaultView(_pinnedApps);
-        view.Filter = signature is null ? null : item => item is DockApp app && !IsHiddenByProfile(app);
+        view.Filter = signature is null ? null : item => item is DockApp app && !IsHiddenByProfile(app) && !IsGrouped(app);
         if (_windowTracker is not null) UpdateRunningApps(VisibleSnapshot);
         ResizeDockToContent();
         _replacementSession?.RefreshPosition();
