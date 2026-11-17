@@ -96,7 +96,8 @@ public sealed class NetworkSpeedWidget : DockWidget
         var down = CardParts.Row(CardParts.Icon("IconArrowDown", 12, "WidgetAccent"), _down);
         var up = CardParts.Row(CardParts.Icon("IconArrowUp", 12, "TextSecondary"), _up);
         _down.Margin = _up.Margin = new Thickness(4, 0, 0, 0);
-        _down.MinWidth = _up.MinWidth = 62;
+        // Fixed width: a changing value must never resize the dock (that re-layouts and re-positions the whole bar).
+        _down.Width = _up.Width = 74;
         var stack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         stack.Children.Add(down);
         stack.Children.Add(up);
@@ -107,7 +108,9 @@ public sealed class NetworkSpeedWidget : DockWidget
 
     protected override void OnTick(DateTime now)
     {
-        var (received, sent) = ReadTotals();
+        // Every 3 s: each change redraws the whole layered (transparent) dock window, so update sparingly.
+        if (_last is { } previous && (now - previous.At).TotalSeconds < 2.9) return;
+        var (received, sent) = ReadTotals(now);
         if (_last is { } last && now > last.At)
         {
             var seconds = (now - last.At).TotalSeconds;
@@ -120,15 +123,24 @@ public sealed class NetworkSpeedWidget : DockWidget
 
     private CultureInfo Culture => UiText.CultureFor(Settings.Language);
 
-    private static (long Received, long Sent) ReadTotals()
+    // Enumerating adapters is the expensive part (~2% CPU when done every second): keep the list for 30 s.
+    private NetworkInterface[] _adapters = [];
+    private DateTime _adaptersAt;
+
+    private (long Received, long Sent) ReadTotals(DateTime now)
     {
         long received = 0, sent = 0;
         try
         {
-            foreach (var adapter in NetworkInterface.GetAllNetworkInterfaces())
+            if (now - _adaptersAt > TimeSpan.FromSeconds(30))
             {
-                if (adapter.OperationalStatus != OperationalStatus.Up
-                    || adapter.NetworkInterfaceType is NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel) continue;
+                _adapters = NetworkInterface.GetAllNetworkInterfaces().Where(adapter => adapter.OperationalStatus == OperationalStatus.Up
+                    && adapter.NetworkInterfaceType is not (NetworkInterfaceType.Loopback or NetworkInterfaceType.Tunnel)).ToArray();
+                _adaptersAt = now;
+            }
+
+            foreach (var adapter in _adapters)
+            {
                 var stats = adapter.GetIPStatistics();
                 received += stats.BytesReceived;
                 sent += stats.BytesSent;
@@ -136,11 +148,11 @@ public sealed class NetworkSpeedWidget : DockWidget
         }
         catch (NetworkInformationException)
         {
+            _adaptersAt = DateTime.MinValue;
         }
 
         return (received, sent);
     }
-
     /// <summary>Bytes/second → "850 KB/s", "12,4 MB/s" (decimal units, like Task Manager).</summary>
     public static string FormatRate(double bytesPerSecond, CultureInfo culture) => bytesPerSecond switch
     {

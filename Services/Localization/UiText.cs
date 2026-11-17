@@ -11,6 +11,13 @@ public sealed partial class UiText : INotifyPropertyChanged
         new Dictionary<string, (string, string)>
         {
             ["Settings"] = ("Ayarlar", "Settings"),
+            ["OpenApp"] = ("Uygulamayı aç", "Open app"),
+            ["UsageSession5h"] = ("Oturum (5 sa)", "Session (5h)"),
+            ["UsageWeekly7d"] = ("Haftalık (7 gün)", "Weekly (7d)"),
+            ["UsageTokenSummary"] = ("Token: oturum {0} · hafta {1}", "Tokens: session {0} · week {1}"),
+            ["UsageEstimatedNote"] = ("Claude yüzdesi tahmini: bu hafta en büyük 5 saatlik bloğunuza göre.", "Claude % is an estimate: compared with your biggest 5-hour block this week."),
+            ["UpdatedAt"] = ("{0} itibarıyla güncellendi", "Updated at {0}"),
+            ["OfBiggestBlock"] = ("(haftanın en büyük bloğuna göre)", "(of your biggest block this week)"),
             ["NoUsageData"] = ("Kullanım verisi yok", "No usage data"),
             ["NoDevices"] = ("Bağlı cihaz yok", "No devices"),
             ["NoDevicesHint"] = ("Bağlı Bluetooth cihazı yok. Bluetooth ayarlarını açmak için tıklayın.", "No Bluetooth device is connected. Click to open Bluetooth settings."),

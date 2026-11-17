@@ -477,9 +477,10 @@ void AiUsageChecks()
         "garbage line with \"usage\""
     };
     var claude = AiUsage.SumClaude(lines, now);
-    Check(claude is { Session: { Tokens: 9000, Percent: null }, Weekly.Tokens: 10500 }
+    Check(claude is { Session: { Tokens: 9000, Percent: 100, Estimated: true }, Weekly.Tokens: 10500 }
           && claude.Session.ResetsAt == new DateTimeOffset(2026, 11, 17, 18, 0, 0, TimeSpan.Zero),
         "Claude Code usage must sum the current 5-hour block and 7 days, counting streamed messages once.");
+    Check(claude.Daily is { Count: 7 } days && days[^1] == 9000 && days.Sum() == 10500, "The 7-day chart must hold one total per day, today last.");
     Check(AiUsage.SumClaude([Claude("2026-11-17T08:00:00Z", "x", 10, 10)], now) is { Session: null, Weekly.Tokens: 20 },
         "An expired 5-hour block must show no session usage.");
     Check(AiUsage.FormatTokens(1_234_567, CultureInfo.GetCultureInfo("pt-BR")) == "1,2M" && AiUsage.FormatTokens(9_000, CultureInfo.InvariantCulture) == "9k",

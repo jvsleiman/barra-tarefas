@@ -4,9 +4,11 @@ using System.Text.Json;
 namespace OpenTaskbar.Services;
 
 /// <summary>One usage window: a real percentage (Codex) or a token count (Claude Code), plus when it resets.</summary>
-public sealed record UsageWindow(double? Percent, long? Tokens, DateTimeOffset? ResetsAt);
+/// <summary>Estimated = the percentage is relative to the user's own biggest recent block, not a real plan limit.</summary>
+public sealed record UsageWindow(double? Percent, long? Tokens, DateTimeOffset? ResetsAt, bool Estimated = false);
 
-public sealed record AiUsageReport(string Provider, UsageWindow? Session, UsageWindow? Weekly)
+/// <summary>Daily = tokens per day for the last 7 days, oldest first (Claude Code only).</summary>
+public sealed record AiUsageReport(string Provider, UsageWindow? Session, UsageWindow? Weekly, IReadOnlyList<long>? Daily = null)
 {
     public bool HasData => Session is not null || Weekly is not null;
 }
@@ -96,14 +98,75 @@ public static class AiUsage
         }
     }
 
+    // Per-file cache: logs only grow, so unchanged files (same size and time) are never read again.
+    private static readonly Dictionary<string, (DateTime WriteTime, long Length, List<string> UsageLines)> ClaudeCache = new(StringComparer.OrdinalIgnoreCase);
+
     public static AiUsageReport ReadClaude(DateTimeOffset now, string? root = null)
     {
         root ??= Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".claude", "projects");
-        var since = now.AddDays(-7);
-        var lines = NewestFiles(root, 400).Where(file => File.GetLastWriteTimeUtc(file) >= since.UtcDateTime).SelectMany(ReadLinesShared);
+        var since = now.AddDays(-7).UtcDateTime;
+        var lines = new List<string>();
+        var live = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var file in NewestFiles(root, 400))
+        {
+            var info = new FileInfo(file);
+            if (info.LastWriteTimeUtc < since) continue;
+            live.Add(file);
+            lock (ClaudeCache)
+            {
+                if (!ClaudeCache.TryGetValue(file, out var cached) || cached.WriteTime != info.LastWriteTimeUtc || cached.Length != info.Length)
+                {
+                    // Stream the file and keep only the (small) usage lines instead of the whole conversation.
+                    cached = (info.LastWriteTimeUtc, info.Length, ReadUsageLines(file));
+                    ClaudeCache[file] = cached;
+                }
+
+                lines.AddRange(cached.UsageLines);
+            }
+        }
+
+        lock (ClaudeCache)
+        {
+            foreach (var stale in ClaudeCache.Keys.Where(key => !live.Contains(key)).ToList()) ClaudeCache.Remove(stale);
+        }
+
         return SumClaude(lines, now);
     }
 
+    /// <summary>Only the timestamp, ids and usage numbers of each assistant message, re-serialized compactly.</summary>
+    private static List<string> ReadUsageLines(string path)
+    {
+        var kept = new List<string>();
+        try
+        {
+            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+            using var reader = new StreamReader(stream);
+            while (reader.ReadLine() is { } line)
+            {
+                if (!line.Contains("\"usage\"", StringComparison.Ordinal)) continue;
+                try
+                {
+                    using var document = JsonDocument.Parse(line);
+                    var root = document.RootElement;
+                    if (!root.TryGetProperty("message", out var message) || !message.TryGetProperty("usage", out var usage)) continue;
+                    kept.Add(JsonSerializer.Serialize(new
+                    {
+                        timestamp = root.TryGetProperty("timestamp", out var at) ? at.GetString() : null,
+                        requestId = root.TryGetProperty("requestId", out var request) ? request.GetString() : null,
+                        message = new { id = message.TryGetProperty("id", out var id) ? id.GetString() : null, usage = usage.Clone() }
+                    }));
+                }
+                catch (JsonException)
+                {
+                }
+            }
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+        }
+
+        return kept;
+    }
     /// <summary>Claude Code usage lines → tokens in the active 5-hour block and in the last 7 days.</summary>
     public static AiUsageReport SumClaude(IEnumerable<string> lines, DateTimeOffset now)
     {
@@ -141,12 +204,35 @@ public static class AiUsage
                 blockStart = new DateTimeOffset(at.Year, at.Month, at.Day, at.Hour, 0, 0, at.Offset);
         }
 
+        // The logs hold no plan limit, so the ring compares this block with the biggest 5-hour block of the last 7 days.
+        var biggest = 0L;
+        DateTimeOffset? scan = null;
+        long running = 0;
+        foreach (var (at, tokens) in entries.Where(entry => entry.At >= now.AddDays(-7)))
+        {
+            if (scan is null || at >= scan.Value.AddHours(5))
+            {
+                biggest = Math.Max(biggest, running);
+                scan = new DateTimeOffset(at.Year, at.Month, at.Day, at.Hour, 0, 0, at.Offset);
+                running = 0;
+            }
+
+            running += tokens;
+        }
+
+        biggest = Math.Max(biggest, running);
         UsageWindow? session = null;
         if (blockStart is { } start && now < start.AddHours(5))
-            session = new UsageWindow(null, entries.Where(entry => entry.At >= start).Sum(entry => entry.Tokens), start.AddHours(5));
+        {
+            var current = entries.Where(entry => entry.At >= start).Sum(entry => entry.Tokens);
+            session = new UsageWindow(biggest > 0 ? Math.Min(100, current * 100d / biggest) : null, current, start.AddHours(5), Estimated: true);
+        }
         var weekTokens = entries.Where(entry => entry.At >= now.AddDays(-7)).Sum(entry => entry.Tokens);
         var weekly = weekTokens > 0 ? new UsageWindow(null, weekTokens, null) : null;
-        return new AiUsageReport(Claude, session, weekly);
+        var today = now.ToLocalTime().Date;
+        var daily = Enumerable.Range(0, 7).Select(back => today.AddDays(back - 6))
+            .Select(day => entries.Where(entry => entry.At.ToLocalTime().Date == day).Sum(entry => entry.Tokens)).ToList();
+        return new AiUsageReport(Claude, session, weekly, daily);
     }
 
     /// <summary>"em 2h 10m" style countdown and "1,2M" style token counts for the card.</summary>

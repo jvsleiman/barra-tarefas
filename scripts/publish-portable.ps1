@@ -16,7 +16,7 @@ dotnet publish $projectPath `
     --self-contained true `
     -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
-    -p:EnableCompressionInSingleFile=true `
+    -p:EnableCompressionInSingleFile=false `
     -o $OutputDir
 
 if ($LASTEXITCODE -eq 0) {

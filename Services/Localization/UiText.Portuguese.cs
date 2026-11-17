@@ -9,6 +9,13 @@ public sealed partial class UiText
     private static readonly IReadOnlyDictionary<string, string> Portuguese = new Dictionary<string, string>
     {
         ["Settings"] = "Configurações",
+        ["OpenApp"] = "Abrir app",
+        ["UsageSession5h"] = "Sessão (5h)",
+        ["UsageWeekly7d"] = "Semanal (7d)",
+        ["UsageTokenSummary"] = "Tokens: sessão {0} · semana {1}",
+        ["UsageEstimatedNote"] = "A % do Claude é uma estimativa: comparada ao seu maior bloco de 5 h da semana.",
+        ["UpdatedAt"] = "Atualizado às {0}",
+        ["OfBiggestBlock"] = "(do seu maior bloco da semana)",
         ["NoUsageData"] = "Sem dados de uso",
         ["NoDevices"] = "Nenhum dispositivo",
         ["NoDevicesHint"] = "Nenhum dispositivo Bluetooth conectado agora. Clique para abrir as configurações de Bluetooth.",

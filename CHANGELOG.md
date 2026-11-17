@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.3 - 2026-11-17
+
+- **Mais leve:** em repouso, a barra caiu de ~3,8% para ~2,6% de um núcleo de CPU e de ~460 MB para ~280 MB de RAM.
+  - O card de IA agora lê os logs do Claude aos poucos e guarda o resultado de cada arquivo, em vez de carregar tudo a cada minuto.
+  - A velocidade da rede atualiza a cada 3 s, com a lista de adaptadores guardada e largura fixa (a barra não se redimensiona mais a cada número).
+  - O .exe não é mais comprimido: fica maior (~160 MB), mas não precisa descompactar tudo na memória.
+- **Card de IA no estilo do Claude:** cada IA mostra o ícone do próprio app e um anel fino azul com o uso da sessão de 5 h. Clicando, abre um painel com anéis maiores (Sessão 5h e Semanal 7d), o tempo para renovar, os tokens do Claude e um gráfico dos últimos 7 dias. ChatGPT e Grok têm "Abrir app". No Claude, a % é uma estimativa em relação ao seu maior bloco de 5 h da semana.
 ## 0.4.2 - 2026-11-17
 
 - **Configurações mais limpas:** os interruptores grandes de liga/desliga viraram uma marcação pequena e discreta, e as linhas perderam as divisórias.

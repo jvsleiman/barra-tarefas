@@ -43,7 +43,7 @@ jobs:
         run: >-
           dotnet publish OpenTaskbar.csproj -c Release -r win-x64 --self-contained true
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
-          -p:EnableCompressionInSingleFile=true -o dist
+          -p:EnableCompressionInSingleFile=false -o dist
 
       - name: Checksum and release notes
         shell: pwsh
