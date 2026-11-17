@@ -1,3 +1,5 @@
+> Baseado no OpenTaskbar (MIT) por OpenTaskbar contributors — https://github.com/alztrk/opentaskbar
+
 # OpenTaskbar
 
 <div align="center">
