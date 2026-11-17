@@ -1,5 +1,14 @@
 > Baseado no OpenTaskbar (MIT) por OpenTaskbar contributors — https://github.com/alztrk/opentaskbar
 
+## Baixar
+
+1. Abra a página da **[última versão](https://github.com/jvsleiman/barra-tarefas/releases/latest)** e baixe o `OpenTaskbar.exe` (não precisa instalar).
+2. Dê dois cliques no arquivo para abrir.
+3. O executável não é assinado, então o Windows SmartScreen pode mostrar um aviso: clique em **Mais informações** › **Executar assim mesmo**.
+4. Para testar sem esconder a barra de tarefas do Windows, abra com `--preview` (ex.: `OpenTaskbar.exe --preview`).
+
+Junto com o `.exe` vai o arquivo `OpenTaskbar.exe.sha256` para conferir a integridade do download.
+
 # OpenTaskbar
 
 <div align="center">
@@ -112,13 +121,13 @@ OpenTaskbar is a lightweight, macOS-inspired floating dock and taskbar replaceme
 
 ### Portable Release
 
-Download `OpenTaskbar.exe` from [GitHub Releases](https://github.com/alztrk/opentaskbar/releases) and launch it directly. No installer or administrator privileges required.
+Download `OpenTaskbar.exe` from [GitHub Releases](https://github.com/jvsleiman/barra-tarefas/releases/latest) and launch it directly. No installer or administrator privileges required.
 
 ### Build from Source
 
 ```powershell
 # Clone the repository
-git clone https://github.com/alztrk/opentaskbar.git
+git clone https://github.com/jvsleiman/barra-tarefas.git
 cd opentaskbar
 
 # Run directly from source

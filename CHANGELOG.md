@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 - 2026-11-17
+
+Primeira versão deste fork (barra-tarefas), baseado no OpenTaskbar 0.2.6 (MIT, OpenTaskbar contributors).
+
+- **Visual novo em blocos (padrão):** barra em largura total flutuando a 8 px das bordas, fundo quase preto translúcido com borda fina; cada ícone num bloco arredondado de 44 px; ponto azul sob os apps abertos; botão Iniciar com o logo do Windows em cinza.
+- **Grupos de apps:** um bloco com até 4 mini-ícones que abre um painel com os apps. Crie, renomeie e desfaça pelo botão direito.
+- **Cards:** novo card de calendário (dia da semana, dia e próximo evento — "Sem eventos" até ligarmos um calendário); botão "^" da bandeja antes do relógio; relógio com dia da semana em vermelho, data, hora grande e clima.
+- **Português (Brasil):** todo o app traduzido; abre em português automaticamente quando o Windows está em português.
+- **Configurações:** novas opções "Ícones em blocos" e "Mostrar o clima abaixo da hora". Configurações antigas migram uma vez para o visual novo, mantendo apps fixados, perfis e pilhas.
+- **Correção:** o app fechava sozinho quando um player de mídia fechava ou ainda não tinha dados de reprodução.
+- **Correção:** a janela de Configurações usava só metade da largura.
+- **Atualizações:** a verificação automática agora olha as releases deste repositório (não mais as do projeto original).
 ## 0.2.6 - 2026-11-17
 
 - Added automated in-place update downloader and restarter; updates download silently in the background and replace the executable without browser redirects.

@@ -1,0 +1,83 @@
+name: Release
+
+# Push a tag like v0.3.0 (matching <Version> in OpenTaskbar.csproj) to build, test and publish a release.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)publish, e.g. v0.3.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Check tag matches project version
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content OpenTaskbar.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          if ("v$version" -ne $env:TAG) { throw "Tag $env:TAG does not match <Version>$version</Version> in OpenTaskbar.csproj." }
+          "VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Run tests
+        run: dotnet run --project tests/OpenTaskbar.Tests/OpenTaskbar.Tests.csproj -c Release
+
+      # Same settings as scripts/publish-portable.ps1: self-contained, compressed single-file x64 exe.
+      - name: Publish portable exe
+        run: >-
+          dotnet publish OpenTaskbar.csproj -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true -o dist
+
+      - name: Checksum and release notes
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash dist/OpenTaskbar.exe -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  OpenTaskbar.exe" | Set-Content -Encoding ascii dist/OpenTaskbar.exe.sha256
+
+          # Release notes = this version's section of CHANGELOG.md.
+          $lines = Get-Content CHANGELOG.md -Encoding utf8
+          $start = [Array]::FindIndex($lines, [Predicate[string]]{ param($l) $l -match "^## $([regex]::Escape($env:VERSION))\b" })
+          if ($start -lt 0) { throw "CHANGELOG.md has no section for $env:VERSION." }
+          $end = [Array]::FindIndex($lines, $start + 1, [Predicate[string]]{ param($l) $l -match '^## ' })
+          if ($end -lt 0) { $end = $lines.Length }
+          $section = $lines[($start + 1)..($end - 1)] -join "`n"
+          @"
+          ## Novidades
+
+          $($section.Trim())
+
+          ## Como usar
+
+          Baixe o **OpenTaskbar.exe** abaixo e dê dois cliques (não precisa instalar). O executável não é assinado: se o Windows SmartScreen avisar, clique em **Mais informações** › **Executar assim mesmo**. Para testar sem esconder a barra do Windows, rode ``OpenTaskbar.exe --preview``.
+
+          SHA-256: ``$hash``
+
+          ---
+          Baseado no [OpenTaskbar](https://github.com/alztrk/opentaskbar) (licença MIT, © OpenTaskbar contributors).
+          "@ | Set-Content -Encoding utf8 release-notes.md
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.TAG }}
+          name: Barra de Tarefas ${{ env.TAG }}
+          body_path: release-notes.md
+          files: |
+            dist/OpenTaskbar.exe
+            dist/OpenTaskbar.exe.sha256

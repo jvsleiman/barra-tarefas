@@ -12,7 +12,8 @@ namespace OpenTaskbar.Services;
 public static class UpdateChecker
 {
     /// <summary>The repository whose releases are checked (the project's origin remote).</summary>
-    public const string Repository = "alztrk/opentaskbar";
+    // This fork's own releases. Pointing at upstream would let the in-place updater replace the fork with upstream builds.
+    public const string Repository = "jvsleiman/barra-tarefas";
 
     public static string ReleasesPage => $"https://github.com/{Repository}/releases/latest";
 
