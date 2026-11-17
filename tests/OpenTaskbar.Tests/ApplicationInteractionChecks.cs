@@ -131,6 +131,35 @@ internal static class ApplicationInteractionChecks
                 menu.IsOpen = false;
                 flyout.Close();
             }
+
+            // Toggle regression: a press on the anchor light-dismisses the flyout (IsOpen=false) and its click arrives
+            // ~60 ms later while the close animation is still running; that click must not reopen it.
+            var toggleFlyout = new OpenTaskbar.DockFlyout();
+            var opened = 0;
+            toggleFlyout.Toggle(secondButton, () => { opened++; return new TextBlock { Text = "x" }; }, animate: true);
+            Flush();
+            Check(toggleFlyout.IsOpen && opened == 1, "The first click on a dock tile must open its flyout.");
+            toggleFlyout.Close(); // what light dismiss does on mouse down
+            toggleFlyout.Toggle(secondButton, () => { opened++; return new TextBlock { Text = "x" }; }, animate: true);
+            Flush();
+            Check(!toggleFlyout.IsOpen && opened == 1, "The click that dismissed a flyout must not reopen it mid-fade.");
+            toggleFlyout.Toggle(secondButton, () => { opened++; return new TextBlock { Text = "x" }; }, animate: true);
+            Flush();
+            Check(toggleFlyout.IsOpen && opened == 2, "The next click on the tile must open the flyout again.");
+            toggleFlyout.Toggle(secondButton, () => { opened++; return new TextBlock { Text = "x" }; }, animate: true);
+            Flush();
+            Check(!toggleFlyout.IsOpen, "Clicking the tile of an open flyout must close it.");
+
+            // Start / shell panel toggle: open now, or seen open within the grace period, counts as open at press.
+            var shell = new ShellSurfaceToggle();
+            var t0 = new DateTime(2026, 11, 17, 12, 0, 0, DateTimeKind.Utc);
+            Check(!shell.WasOpen(t0, openNow: false) && shell.WasOpen(t0, openNow: true), "A closed shell panel must read as closed.");
+            shell.RecordOpen(t0);
+            Check(shell.WasOpen(t0.AddMilliseconds(300), openNow: false), "Start that dismissed itself on the same press must count as open.");
+            Check(!shell.WasOpen(t0 + ShellSurfaceToggle.Grace + TimeSpan.FromMilliseconds(1), openNow: false),
+                "After the grace period a closed Start must open again on click.");
+            shell.Reset();
+            Check(!shell.WasOpen(t0.AddMilliseconds(10), openNow: false), "Closing Start must reset the toggle.");
         }
         finally
         {

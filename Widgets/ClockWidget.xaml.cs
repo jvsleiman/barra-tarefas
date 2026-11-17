@@ -9,11 +9,14 @@ namespace OpenTaskbar.Widgets;
 
 public partial class ClockWidget : DockWidget
 {
-    private readonly DockFlyout _calendar = new();
+    private readonly MonthCalendarFlyout _calendar;
     private string _lastRenderKey = string.Empty;
-    private DateOnly _shownMonth;
 
-    public ClockWidget() => InitializeComponent();
+    public ClockWidget()
+    {
+        InitializeComponent();
+        _calendar = new MonthCalendarFlyout(() => Culture, Report);
+    }
 
     private CultureInfo Culture => UiText.CultureFor(Settings.Language);
 
@@ -120,102 +123,5 @@ protected override void OnDeactivated()
         }
     }
 
-    private void ClockButton_Click(object sender, RoutedEventArgs e)
-    {
-        _shownMonth = DateOnly.FromDateTime(DateTime.Today);
-        _shownMonth = new DateOnly(_shownMonth.Year, _shownMonth.Month, 1);
-        var root = new ContentControl();
-        root.Content = BuildCalendar(root);
-        _calendar.Toggle(ClockButton, () => root);
-    }
-
-    /// <summary>Month view with the user's first day of week; arrows rebuild it in place.</summary>
-    private UIElement BuildCalendar(ContentControl host)
-    {
-        var culture = Culture;
-        var today = DateOnly.FromDateTime(DateTime.Today);
-        var root = new StackPanel { Width = 280 };
-        root.Children.Add(new TextBlock
-        {
-            Text = DateTime.Today.ToString("D", culture), FontWeight = FontWeights.SemiBold, FontSize = 14, Margin = new Thickness(4, 0, 4, 10)
-        });
-
-        var header = new DockPanel { Margin = new Thickness(0, 0, 0, 6) };
-        var previous = NavButton("IconChevronLeft", -1, host);
-        var next = NavButton("IconChevronNext", 1, host);
-        DockPanel.SetDock(previous, Dock.Left);
-        DockPanel.SetDock(next, Dock.Right);
-        header.Children.Add(previous);
-        header.Children.Add(next);
-        var title = _shownMonth.ToString("MMMM yyyy", culture);
-        header.Children.Add(new TextBlock
-        {
-            Text = culture.TextInfo.ToTitleCase(title), HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center, FontWeight = FontWeights.SemiBold
-        });
-        root.Children.Add(header);
-
-        var grid = new UniformGrid { Columns = 7 };
-        var firstDay = culture.DateTimeFormat.FirstDayOfWeek;
-        for (var index = 0; index < 7; index++)
-        {
-            var day = (DayOfWeek)(((int)firstDay + index) % 7);
-            var name = DockFlyout.Caption(culture.DateTimeFormat.GetShortestDayName(day));
-            name.HorizontalAlignment = HorizontalAlignment.Center;
-            grid.Children.Add(name);
-        }
-
-        var offset = ((int)_shownMonth.DayOfWeek - (int)firstDay + 7) % 7;
-        var start = _shownMonth.AddDays(-offset);
-        for (var cell = 0; cell < 42; cell++)
-        {
-            var date = start.AddDays(cell);
-            var label = new TextBlock
-            {
-                Text = date.Day.ToString(culture), HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center
-            };
-            var border = new Border { Width = 32, Height = 30, CornerRadius = new CornerRadius(15), Child = label, Margin = new Thickness(1) };
-            if (date == today)
-            {
-                border.SetResourceReference(Border.BackgroundProperty, "WidgetAccent");
-                label.SetResourceReference(TextBlock.ForegroundProperty, "WidgetAccentText");
-                label.FontWeight = FontWeights.SemiBold;
-            }
-            else if (date.Month != _shownMonth.Month)
-            {
-                label.SetResourceReference(TextBlock.ForegroundProperty, "TextSecondary");
-                label.Opacity = 0.6;
-            }
-
-            grid.Children.Add(border);
-        }
-
-        root.Children.Add(grid);
-        var notifications = DockFlyout.FlatButton(new TextBlock { Text = UiText.Get("OpenNotifications"), FontWeight = FontWeights.SemiBold }, (_, _) =>
-        {
-            _calendar.Close();
-            Report(ShellShortcuts.OpenNotificationCenter());
-        });
-        notifications.Margin = new Thickness(0, 8, 0, 0);
-        root.Children.Add(notifications);
-        return root;
-    }
-
-    private Button NavButton(string icon, int months, ContentControl host)
-    {
-        var glyph = new ContentControl { Content = FindResource(icon), Width = 14, Height = 14 };
-        glyph.SetResourceReference(StyleProperty, "WidgetIcon");
-        glyph.SetResourceReference(ForegroundProperty, "TextPrimary");
-        var button = new Button { Content = glyph };
-        button.SetResourceReference(StyleProperty, "WidgetIconButton");
-        var key = months < 0 ? "PreviousMonth" : "NextMonth";
-        button.ToolTip = UiText.Get(key);
-        System.Windows.Automation.AutomationProperties.SetName(button, UiText.Get(key));
-        button.Click += (_, _) =>
-        {
-            _shownMonth = _shownMonth.AddMonths(months);
-            host.Content = BuildCalendar(host);
-        };
-        return button;
-    }
+    private void ClockButton_Click(object sender, RoutedEventArgs e) => _calendar.Toggle(ClockButton);
 }
